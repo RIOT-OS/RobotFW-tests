@@ -1,0 +1,10 @@
+APPLICATION ?= tests_$(notdir $(patsubst %/,%,$(CURDIR)))
+TESTBASE ?= $(CURDIR)/../../
+RIOTBASE ?= $(TESTBASE)/RIOT
+QUIET ?= 1
+# DEVELHELP enabled by default for all tests, set 0 to disable
+DEVELHELP ?= 1
+
+CFLAGS += -DRIOT_APPLICATION=\"$(APPLICATION)\"
+
+include $(TESTBASE)/dist/robotframework/Makefile.include
