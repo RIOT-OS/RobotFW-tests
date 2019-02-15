@@ -1,10 +1,16 @@
 APPLICATION ?= tests_$(notdir $(patsubst %/,%,$(CURDIR)))
+
+# set and redirect default paths
 TESTBASE ?= $(CURDIR)/../../
 RIOTBASE ?= $(TESTBASE)/RIOT
+BUILD_DIR ?= $(TESTBASE)/build
+
+# suppress output
 QUIET ?= 1
 # DEVELHELP enabled by default for all tests, set 0 to disable
 DEVELHELP ?= 1
-
+# expose extra metadata
 CFLAGS += -DRIOT_APPLICATION=\"$(APPLICATION)\"
 
+# include RF specific settings
 include $(TESTBASE)/dist/robotframework/Makefile.include

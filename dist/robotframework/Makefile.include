@@ -1,9 +1,10 @@
+# RF specific paths
 RFBASE    ?= $(TESTBASE)/dist/robotframework
 RFPYPATH  ?= $(APPDIR)/tests:$(RFBASE)/lib:$(RFBASE)/res
 RFOUTPATH ?= $(BUILD_DIR)/robot/$(BOARD)/$(APPLICATION)/
-
+# search for RF test script files
 ROBOT_FILES ?= $(wildcard tests/*.robot)
-
+# RF make target
 robot-test: $(ROBOT_FILES)
 	python3 -m robot.run \
 				--name $(APPLICATION) \
