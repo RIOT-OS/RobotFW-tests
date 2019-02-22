@@ -28,16 +28,6 @@ Double Acquire Should Timeout
     API Call Should Succeed     I2C Acquire
     API Call Should Timeout     I2C Acquire
 
-Unacquired Read Register Should Succeed
-    [Documentation]             Verfiy reading a register without acquiring the I2C bus.
-    API Call Should Succeed     I2C Read Reg
-
-Read Register After Release Should Error
-    [Documentation]             Verfiy reading a register doesn't work after releasing the I2C bus.
-    API Call Should Succeed     I2C Acquire
-    API Call Should Succeed     I2C Release
-    API Call Should Error       I2C Read Reg
-
 Read Register After NACK Should Succeed
     [Documentation]             Verify recovery of I2C bus after NACK.
     API Call Should Error       I2C Read Reg  addr=42
