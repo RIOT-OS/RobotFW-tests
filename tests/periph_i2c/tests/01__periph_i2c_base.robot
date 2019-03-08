@@ -30,5 +30,7 @@ Double Acquire Should Timeout
 
 Read Register After NACK Should Succeed
     [Documentation]             Verify recovery of I2C bus after NACK.
+    API Call Should Succeed     I2C Acquire
     API Call Should Error       I2C Read Reg  addr=42
     API Call Should Succeed     I2C Read Reg
+    API Call Should Succeed     I2C Release
