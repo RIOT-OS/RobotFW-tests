@@ -34,3 +34,11 @@ Read Register After NACK Should Succeed
     API Call Should Error       I2C Read Reg  addr=42
     API Call Should Succeed     I2C Read Reg
     API Call Should Succeed     I2C Release
+
+Read Byte After Multiple NACKs Should Succeed
+    [Documentation]             Verify recovery of read bytes NACK.
+    API Call Should Succeed     I2C Acquire
+    API Call Should Error       I2C Read Byte  addr=42
+    API Call Should Error       I2C Read Byte  addr=43
+    API Call Should Succeed     I2C Read Byte
+    API Call Should Succeed     I2C Release
