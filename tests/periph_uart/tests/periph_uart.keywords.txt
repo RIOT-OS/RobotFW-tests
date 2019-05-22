@@ -1,5 +1,6 @@
 *** Settings ***
 Library             UartDevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${10}
+Library             periph_uart_if.PeriphUartUtil
 
 Resource            api_shell.keywords.txt
 Resource            philip.keywords.txt
@@ -10,6 +11,21 @@ DUT Must Have Periph UART Application
     Should Contain              ${RESULT['msg']}  periph_uart
 
 DUT Should Match String
-    [Arguments]                 ${dev}  ${test_string}
-    API Call Should Succeed     Uart Send  dev=${dev}  test_string=${test_string}
-    Should Be Equal             ${RESULT['data']}  ${test_string}
+    [Arguments]                 ${dev}  ${test_string}  ${reference_string}
+    ${RESULT}=                  Run Keyword  Uart Send String   dev=${dev}  test_string=${test_string}
+    ${stat}=                    Get PHILIP Statistics
+    ${err_msg}=                 Message for should match   ${RESULT}   ${reference_string}   ${stat}
+    Should Be Empty             ${err_msg}   ${err_msg}
+
+DUT Should Not Match String or Timeout
+    [Arguments]                 ${dev}  ${test_string}  ${reference_string}
+    ${RESULT}=                  Run Keyword  Uart Send String   dev=${dev}  test_string=${test_string}
+    ${stat}=                    Get PHILIP Statistics
+    ${err_msg}=                 Message for should not match   ${RESULT}   ${reference_string}   ${stat}
+    #Should Be True              '${RESULT['result']}'=='Timeout' or '${rcv_string}'!='${reference_string}'   msg=${stat}
+    Should Be Empty             ${err_msg}   ${err_msg}
+
+DUT UART mode should exist
+    [Arguments]                 ${dev}
+    ${status}   ${value}=       Run Keyword And Ignore Error   API Call Should Succeed   Uart Mode   dev=${dev}   data_bits=8   parity="N"   stop_bits=1
+    Pass Execution If           '${status}'=='FAIL'   Feature is not supported
