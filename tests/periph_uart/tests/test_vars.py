@@ -15,6 +15,7 @@ def create_random_data(data_len):
         string.digits) for n in range(data_len)])
 
 
+TEST_STRING_FOR_STOP_BITS = "tttt"
 SHORT_TEST_STRING = "t111"
 SHORT_TEST_STRING_INC = increment_data(SHORT_TEST_STRING)
 LONG_TEST_STRING = create_random_data(42)
