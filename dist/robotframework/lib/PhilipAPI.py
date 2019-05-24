@@ -13,8 +13,8 @@ class PhilipAPI(Phil):
         super().__init__(port, baudrate)
 
     def setup_uart(self, mode=0, baudrate=115200,
-                   parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,
-                   rts=True):
+                   databits=serial.EIGHTBITS, parity=serial.PARITY_NONE,
+                   stopbits=serial.STOPBITS_ONE, rts=True):
         """Setup tester's UART."""
         ret = list()
         mode = int(mode)
@@ -23,6 +23,9 @@ class PhilipAPI(Phil):
         ret.append(self.write_reg('uart.baud', int(baudrate)))
 
         # setup UART control register
+        if databits == serial.SEVENBITS:
+            ret.append(self.write_reg('uart.mode.data_bits', 1))
+
         if parity == serial.PARITY_EVEN:
             ret.append(self.write_reg('uart.mode.parity', 1))
         elif parity == serial.PARITY_ODD:
@@ -38,4 +41,20 @@ class PhilipAPI(Phil):
 
         # apply changes
         ret.append(self.execute_changes())
+        return ret
+
+    def get_counters(self):
+        """Get rx/tx counters."""
+        ret = list()
+        ret.append(self.read_reg('uart.rx_count'))
+        ret.append(self.read_reg('uart.tx_count'))
+        return ret
+
+    def get_error_flags(self):
+        """Get error flags."""
+        ret = list()
+        ret.append(self.read_reg('uart.status.pe'))
+        ret.append(self.read_reg('uart.status.fe'))
+        ret.append(self.read_reg('uart.status.nf'))
+        ret.append(self.read_reg('uart.status.ore'))
         return ret

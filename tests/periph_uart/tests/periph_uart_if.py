@@ -31,3 +31,41 @@ class PeriphUartIf(DutShell):
     def uart_get_id(self):
         """Get the id of the fw."""
         return self.send_cmd('uart_get_id')
+
+
+class PeriphUartUtil(object):
+    """Helper class for error message handling."""
+
+    @staticmethod
+    def uart_get_string(result):
+        """Return either an empty string if sending failed or received one."""
+        rcv_string = ''
+        if result['data'] is not None and result['data'][0]:
+            rcv_string = result['data'][0]
+
+        return rcv_string
+
+    def message_for_should_match(self, result, ref_string, stats):
+        """Create message for DUT Should Match String keyword."""
+        ret = ''
+        rcv_string = self.uart_get_string(result)
+        if result['result'] == 'Timeout':
+            ret = "Test timed out: " + stats
+        elif result['result'] == 'Success' and rcv_string != ref_string:
+            ret = "Reference string doesn't match the received one: " + stats
+        elif result['result'] == 'Error':
+            ret = "API call failed: " + result['msg']
+
+        return ret
+
+    def message_for_should_not_match(self, result, ref_string, stats):
+        """Create message for DUT Should Not Match String keyword."""
+        ret = ''
+        rcv_string = self.uart_get_string(result)
+        if result['result'] == 'Success' and rcv_string == ref_string:
+            ret = "No timeout occurred and the reference string " \
+                  "does match the received one: " + stats
+        elif result['result'] == 'Error':
+            ret = "API call failed: " + result['msg']
+
+        return ret
