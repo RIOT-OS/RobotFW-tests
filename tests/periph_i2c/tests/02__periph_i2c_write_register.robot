@@ -2,9 +2,9 @@
 Documentation       Data driven tests to verify writing to a valid register.
 
 Suite Setup         Run Keywords    Reset DUT and PHILIP
-...                                 DUT Must Have API Firmware
+...                                 API Firmware Should Match
 Test Setup          Run Keywords    Reset DUT and PHILIP
-...                                 DUT Must Have API Firmware
+...                                 API Firmware Should Match
 ...                                 I2C Acquire
 Test Teardown       I2C Release
 Test Template       I2C Write Bytes To Register Should Succeed
