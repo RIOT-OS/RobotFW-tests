@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation       Basic tests to verify functionality of the periph I2C API.
+Documentation       Verify basic functionality of the periph I2C API.
 
 Suite Setup         Run Keywords    Reset DUT and PHILIP
 ...                                 API Firmware Should Match
@@ -24,7 +24,7 @@ Acquire after Release Should Succeed
     API Call Should Succeed     I2C Acquire
 
 Double Acquire Should Timeout
-    [Documentation]             Verify that acquiring a locked I2C bus blocks the thread.
+    [Documentation]             Verify that acquiring a locked I2C bus blocks.
     API Call Should Succeed     I2C Acquire
     API Call Should Timeout     I2C Acquire
 

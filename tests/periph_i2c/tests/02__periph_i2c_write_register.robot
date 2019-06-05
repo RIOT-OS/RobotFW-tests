@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation       Data driven tests to verify writing to a valid register.
+Documentation       Data driven tests to verify the i2c_write_regs call.
 
 Suite Setup         Run Keywords    Reset DUT and PHILIP
 ...                                 API Firmware Should Match
