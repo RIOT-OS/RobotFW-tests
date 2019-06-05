@@ -2,9 +2,9 @@
 Documentation       Basic tests to verify functionality of the periph I2C API.
 
 Suite Setup         Run Keywords    Reset DUT and PHILIP
-...                                 DUT Must Have API Firmware
+...                                 API Firmware Should Match
 Test Setup          Run Keywords    Reset DUT and PHILIP
-...                                 DUT Must Have API Firmware
+...                                 API Firmware Should Match
 
 Resource            periph_i2c.keywords.txt
 Resource            api_shell.keywords.txt

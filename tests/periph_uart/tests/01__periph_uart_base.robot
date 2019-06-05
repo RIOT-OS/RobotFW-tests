@@ -1,8 +1,8 @@
 *** Settings ***
 Suite Setup         Run Keywords    Reset DUT and PHILIP
-...                                 DUT Must Have Periph UART Application
+...                                 API Firmware Should Match
 Test Setup          Run Keywords    Reset DUT and PHILIP
-...                                 DUT Must Have Periph UART Application
+...                                 API Firmware Should Match
 
 Resource            periph_uart.keywords.txt
 Resource            api_shell.keywords.txt

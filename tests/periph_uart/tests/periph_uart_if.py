@@ -28,9 +28,9 @@ class PeriphUartIf(DutShell):
         """Send data via DUT's UART."""
         return self.send_cmd("send {} {}".format(dev, test_string))
 
-    def uart_get_id(self):
-        """Get the id of the fw."""
-        return self.send_cmd('uart_get_id')
+    def get_metadata(self):
+        """Get the metadata of the firmware."""
+        return self.send_cmd('get_metadata')
 
 
 class PeriphUartUtil(object):

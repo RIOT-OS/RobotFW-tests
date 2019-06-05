@@ -252,11 +252,13 @@ static int cmd_send(int argc, char **argv)
     return 0;
 }
 
-int cmd_i2c_get_id(int argc, char **argv)
+int cmd_get_metadata(int argc, char **argv)
 {
     (void)argv;
     (void)argc;
-    puts("Success: [periph_uart]");
+
+    printf("Success: [%s, %s]\n", RIOT_BOARD, RIOT_APPLICATION);
+
     return 0;
 }
 
@@ -266,7 +268,7 @@ static const shell_command_t shell_commands[] = {
     { "mode", "Setup data bits, stop bits and parity for a given UART device", cmd_mode },
 #endif
     { "send", "Send a string through given UART device", cmd_send },
-    { "uart_get_id", "Get the id of the fw", cmd_i2c_get_id },
+    { "get_metadata", "Get the metadata of the test firmware", cmd_get_metadata },
     { NULL, NULL, NULL }
 };
 
