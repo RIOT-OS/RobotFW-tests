@@ -31,6 +31,11 @@ API Get Last Result As Integer
     ${ret}=             Convert to Integer  ${RESULT['data'][0]}
     [Return]            ${ret}
 
+API Last Result Message Should Contain
+    [Documentation]     Fails if ${msg} is not in the last API message
+    [Arguments]         ${msg}
+    Should Contain      ${RESULT['msg']}  ${msg}
+
 API Call Repeat on Timeout
     [Documentation]     Repeats the given API ``call`` up to 5 times on timeout.
     [Arguments]         ${call}  @{args}  &{kwargs}

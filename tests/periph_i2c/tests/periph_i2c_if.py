@@ -18,7 +18,7 @@ class PeriphI2cIf(DutShell):
     FW_ID = 'periph_i2c'
     DEFAULT_DEV = 0
     DEFAULT_ADDR = 85
-    DEFAULT_REG = 152
+    DEFAULT_REG = 0
     DEFAULT_LEN = 10
     DEFAULT_DATA = [0, 1, 2]
 
