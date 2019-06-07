@@ -4,11 +4,9 @@ Library             PhilipAPI  port=%{PHILIP_PORT}  baudrate=${115200}  WITH NAM
 Resource            riot_base.keywords.txt
 
 *** Keywords ***
-Reset DUT and PHILIP
-    [Documentation]     Reset the device under test and the PHILIP tester.
-    Reset Application
+PHILIP Reset
+    [Documentation]     Reset the PHiLIP MCU
     PHILIP.Reset MCU
-    PHILIP.DuT Reset
 
 Show PHILIP Statistics
     [Documentation]     Show rx/tx counters and error flags.

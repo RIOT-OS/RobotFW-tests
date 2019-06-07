@@ -1,10 +1,11 @@
 *** Settings ***
 Documentation       Tests to verify correct error codes are given.
 
-Suite Setup         Run Keywords    Reset DUT and PHILIP
+Suite Setup         Run Keywords    RIOT Reset
+...                                 PHILIP Reset
 ...                                 API Firmware Should Match
-Test Setup          Run Keywords    Reset DUT and PHILIP
-...                                 API Firmware Should Match
+Test Setup          Run Keywords    RIOT Reset
+...                                 PHILIP Reset
 ...                                 I2C Acquire
 Test Teardown       I2C Release
 
