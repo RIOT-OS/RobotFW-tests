@@ -1,4 +1,6 @@
 *** Settings ***
+Documentation       Verify mode config functionality of the periph UART API.
+
 Suite Setup         Run Keywords    Reset DUT and PHILIP
 ...                                 API Firmware Should Match
 Test Setup          Run Keywords    Reset DUT and PHILIP
