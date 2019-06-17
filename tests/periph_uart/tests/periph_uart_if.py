@@ -17,7 +17,10 @@ class PeriphUartIf(DutShell):
 
     def uart_init(self, dev=DEFAULT_DEV, baud=DEFAULT_BAUD):
         """Initialize DUT's UART."""
-        return self.send_cmd("init {} {}".format(dev, baud))
+        ret = self.send_cmd("init {} {}".format(dev, baud))
+        # Clear buffer from init by sending and receiving
+        self.send_cmd("send {} {}".format(dev, "flush"))
+        return ret
 
     def uart_mode(self, data_bits, parity, stop_bits, dev=DEFAULT_DEV):
         """Setup databits, parity and stopbits."""
