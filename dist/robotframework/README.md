@@ -10,7 +10,7 @@ or writing any test install the package by calling:
 pip install robotframework
 ```
 
-There is also a `requirements.txt` which also installs the `riot_pal` package
+There is also a `requirements.txt` which also installs more Python packages
 for HIL tests, to install all at once, run:
 
 ```
