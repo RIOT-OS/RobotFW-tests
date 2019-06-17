@@ -1,10 +1,11 @@
 *** Settings ***
 Documentation       Verify basic functionality of the periph I2C API.
 
-Suite Setup         Run Keywords    Reset DUT and PHILIP
+Suite Setup         Run Keywords    RIOT Reset
+...                                 PHILIP Reset
 ...                                 API Firmware Should Match
-Test Setup          Run Keywords    Reset DUT and PHILIP
-...                                 API Firmware Should Match
+Test Setup          Run Keywords    RIOT Reset
+...                                 PHILIP Reset
 
 Resource            periph_i2c.keywords.txt
 Resource            api_shell.keywords.txt

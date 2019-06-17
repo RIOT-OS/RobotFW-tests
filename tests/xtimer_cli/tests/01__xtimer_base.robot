@@ -2,11 +2,10 @@
 Documentation       Verify basic functionality of the Xtimer API.
 
 # reset application and check DUT has correct firmware, skip all tests on error
-Suite Setup         Run Keywords    Reset Application
+Suite Setup         Run Keywords    RIOT Reset
 ...                                 API Firmware Should Match
-# reset application and check DUT is up again befor every test case
-Test Setup          Run Keywords    Reset Application
-...                                 API Firmware Should Match
+# reset application before running any test
+Test Setup          Run Keywords    RIOT Reset
 
 # import libs and keywords
 Library             Xtimer  port=%{PORT}  baudrate=%{BAUD}  timeout=${10}
