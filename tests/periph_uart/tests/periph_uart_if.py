@@ -22,10 +22,15 @@ class PeriphUartIf(DutShell):
         self.send_cmd("send {} {}".format(dev, "flush"))
         return ret
 
-    def uart_mode(self, data_bits, parity, stop_bits, dev=DEFAULT_DEV):
+    def uart_mode(self, data_bits, parity, stop_bits, dev=DEFAULT_DEV,
+                  baud=DEFAULT_BAUD):
         """Setup databits, parity and stopbits."""
-        return self.send_cmd(
+        self.send_cmd("init {} {}".format(dev, baud))
+        ret = self.send_cmd(
             "mode {} {} {} {}".format(dev, data_bits, parity, stop_bits))
+
+        self.send_cmd("send {} {}".format(dev, "flush\n"))
+        return ret
 
     def uart_send_string(self, test_string, dev=DEFAULT_DEV):
         """Send data via DUT's UART."""
