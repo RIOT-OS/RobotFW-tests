@@ -1,11 +1,12 @@
 *** Settings ***
 Documentation       Data driven tests to verify the i2c_write_regs call.
 
-Suite Setup         Run Keywords    RIOT Reset
-...                                 PHILIP Reset
+Suite Setup         Run Keywords    PHILIP Reset
+...                                 RIOT Reset
 ...                                 API Firmware Should Match
-Test Setup          Run Keywords    RIOT Reset
-...                                 PHILIP Reset
+Test Setup          Run Keywords    PHILIP Reset
+...                                 RIOT Reset
+...                                 API Sync Shell
 ...                                 I2C Acquire
 Test Teardown       I2C Release
 Test Template       I2C Write Bytes To Register Should Succeed

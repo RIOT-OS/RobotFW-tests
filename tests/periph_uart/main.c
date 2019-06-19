@@ -128,7 +128,7 @@ static void sleep_test(int num, uart_t uart)
     puts("[OK]");
 }
 
-static int cmd_init(int argc, char **argv)
+static int cmd_uart_init(int argc, char **argv)
 {
     int dev, res;
     uint32_t baud;
@@ -164,7 +164,7 @@ static int cmd_init(int argc, char **argv)
 }
 
 #ifdef MODULE_PERIPH_UART_MODECFG
-static int cmd_mode(int argc, char **argv)
+static int cmd_uart_mode(int argc, char **argv)
 {
     int dev, data_bits_arg, stop_bits_arg;
     uart_data_bits_t data_bits;
@@ -231,7 +231,7 @@ static int cmd_mode(int argc, char **argv)
 }
 #endif /* MODULE_PERIPH_UART_MODECFG */
 
-static int cmd_send(int argc, char **argv)
+static int cmd_uart_write(int argc, char **argv)
 {
     int dev;
     uint8_t endline = (uint8_t)'\n';
@@ -263,11 +263,11 @@ int cmd_get_metadata(int argc, char **argv)
 }
 
 static const shell_command_t shell_commands[] = {
-    { "init", "Initialize a UART device with a given baudrate", cmd_init },
+    { "uart_init", "Initialize a UART device with a given baudrate", cmd_uart_init },
 #ifdef MODULE_PERIPH_UART_MODECFG
-    { "mode", "Setup data bits, stop bits and parity for a given UART device", cmd_mode },
+    { "uart_mode", "Setup data bits, stop bits and parity for a given UART device", cmd_uart_mode },
 #endif
-    { "send", "Send a string through given UART device", cmd_send },
+    { "uart_write", "Send a buffer through given UART device", cmd_uart_write },
     { "get_metadata", "Get the metadata of the test firmware", cmd_get_metadata },
     { NULL, NULL, NULL }
 };
