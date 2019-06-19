@@ -22,7 +22,7 @@ DUT Should Not Match String or Timeout
     Should Be Empty             ${err_msg}   ${err_msg}
 
 DUT UART mode should exist
-    ${status}   ${value}=       Run Keyword And Ignore Error   API Call Should Succeed   Uart Mode   data_bits=8   parity="N"   stop_bits=1
+    ${status}   ${value}=       Run Keyword And Ignore Error   API Call Should Succeed   Uart Mode
     Pass Execution If           '${status}'=='FAIL'   Feature is not supported
 
 DUT Uart Mode Change Should Succeed
