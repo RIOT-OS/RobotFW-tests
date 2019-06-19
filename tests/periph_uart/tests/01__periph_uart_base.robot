@@ -6,7 +6,6 @@ Suite Setup         Run Keywords    PHILIP Reset
 ...                                 API Firmware Should Match
 Test Setup          Run Keywords    PHILIP Reset
 ...                                 RIOT Reset
-...                                 API Firmware Should Match
 
 Resource            periph_uart.keywords.txt
 Resource            api_shell.keywords.txt
