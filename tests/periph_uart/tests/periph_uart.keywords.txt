@@ -1,5 +1,5 @@
 *** Settings ***
-Library             UartDevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${10}
+Library             UartDevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${0.5}
 Library             periph_uart_if.PeriphUartUtil
 
 Resource            api_shell.keywords.txt
@@ -7,21 +7,31 @@ Resource            philip.keywords.txt
 
 *** Keywords ***
 DUT Should Match String
-    [Arguments]                 ${dev}  ${test_string}  ${reference_string}
-    ${RESULT}=                  Run Keyword  Uart Send String   dev=${dev}  test_string=${test_string}
+    [Arguments]                 ${test_string}  ${reference_string}
+    ${RESULT}=                  Run Keyword  Uart Send String   test_string=${test_string}
     ${stat}=                    Get PHILIP Statistics
-    ${err_msg}=                 Message for should match   ${RESULT}   ${reference_string}   ${stat}
+    ${err_msg}=                 Message for should match        ${RESULT}   ${reference_string}   ${stat}
     Should Be Empty             ${err_msg}   ${err_msg}
 
 DUT Should Not Match String or Timeout
-    [Arguments]                 ${dev}  ${test_string}  ${reference_string}
-    ${RESULT}=                  Run Keyword  Uart Send String   dev=${dev}  test_string=${test_string}
+    [Arguments]                 ${test_string}  ${reference_string}
+    ${RESULT}=                  Run Keyword  Uart Send String   test_string=${test_string}
     ${stat}=                    Get PHILIP Statistics
-    ${err_msg}=                 Message for should not match   ${RESULT}   ${reference_string}   ${stat}
+    ${err_msg}=                 Message for should not match    ${RESULT}   ${reference_string}   ${stat}
     #Should Be True              '${RESULT['result']}'=='Timeout' or '${rcv_string}'!='${reference_string}'   msg=${stat}
     Should Be Empty             ${err_msg}   ${err_msg}
 
 DUT UART mode should exist
-    [Arguments]                 ${dev}
-    ${status}   ${value}=       Run Keyword And Ignore Error   API Call Should Succeed   Uart Mode   dev=${dev}   data_bits=8   parity="N"   stop_bits=1
+    ${status}   ${value}=       Run Keyword And Ignore Error   API Call Should Succeed   Uart Mode   data_bits=8   parity="N"   stop_bits=1
     Pass Execution If           '${status}'=='FAIL'   Feature is not supported
+
+DUT Uart Mode Change Should Succeed
+    [Arguments]                 @{args}  &{kwargs}
+    API Call Should Succeed     Uart Init
+    API Call Should Succeed     Uart Mode   @{args}  &{kwargs}
+    Uart Send string            flush
+
+DUT Uart Init and Flush Should Succeed
+    [Arguments]                 @{args}  &{kwargs}
+    API Call Should Succeed     Uart Init   @{args}  &{kwargs}
+    Uart Send string            flush

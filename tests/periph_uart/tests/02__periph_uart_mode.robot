@@ -16,46 +16,46 @@ Force Tags          periph  uart
 
 *** Test Cases ***
 Even Parity 8 Bits
-    DUT UART mode should exist  dev=1
-    PHILIP.Setup Uart           parity=${UART_PARITY_EVEN}
-    API Call Should Succeed     Uart Mode             data_bits=8   parity="E"   stop_bits=1
-    DUT Should Match String     1  ${SHORT_TEST_STRING}  ${SHORT_TEST_STRING}
-    API Call Should Succeed     Uart Mode             data_bits=8   parity="O"   stop_bits=1
-    DUT Should Not Match String or Timeout     1   ${SHORT_TEST_STRING}   ${SHORT_TEST_STRING}
+    DUT UART mode should exist
+    PHILIP.Setup Uart                       parity=${UART_PARITY_EVEN}
+    DUT Uart Mode Change Should Succeed     data_bits=8  parity="E"  stop_bits=1
+    DUT Should Match String                 ${SHORT_TEST_STRING}  ${SHORT_TEST_STRING}
+    DUT Uart Mode Change Should Succeed     data_bits=8   parity="O"   stop_bits=1
+    DUT Should Not Match String or Timeout  ${SHORT_TEST_STRING}   ${SHORT_TEST_STRING}
     Show PHILIP Statistics
 
 Odd Parity 8 Bits
-    DUT UART mode should exist  dev=1
-    PHILIP.Setup Uart           parity=${UART_PARITY_ODD}
-    API Call Should Succeed     Uart Mode             data_bits=8   parity="O"   stop_bits=1
-    DUT Should Match String     1  ${SHORT_TEST_STRING}  ${SHORT_TEST_STRING}
-    API Call Should Succeed     Uart Mode             data_bits=8   parity="E"   stop_bits=1
-    DUT Should Not Match String or Timeout     1   ${SHORT_TEST_STRING}   ${SHORT_TEST_STRING}
+    DUT UART mode should exist
+    PHILIP.Setup Uart                       parity=${UART_PARITY_ODD}
+    DUT Uart Mode Change Should Succeed     data_bits=8   parity="O"   stop_bits=1
+    DUT Should Match String                 ${SHORT_TEST_STRING}  ${SHORT_TEST_STRING}
+    DUT Uart Mode Change Should Succeed     data_bits=8   parity="E"   stop_bits=1
+    DUT Should Not Match String or Timeout  ${SHORT_TEST_STRING}   ${SHORT_TEST_STRING}
     Show PHILIP Statistics
 
 Even Parity 7 Bits
-    DUT UART mode should exist  dev=1
-    PHILIP.Setup Uart           parity=${UART_PARITY_EVEN}   databits=${UART_DATA_BITS_7}
-    API Call Should Succeed     Uart Mode             data_bits=7   parity="E"   stop_bits=1
-    DUT Should Match String     1  ${SHORT_TEST_STRING}  ${SHORT_TEST_STRING}
-    API Call Should Succeed     Uart Mode             data_bits=7   parity="O"   stop_bits=1
-    DUT Should Not Match String or Timeout     1   ${SHORT_TEST_STRING}   ${SHORT_TEST_STRING}
+    DUT UART mode should exist
+    PHILIP.Setup Uart                       parity=${UART_PARITY_EVEN}   databits=${UART_DATA_BITS_7}
+    DUT Uart Mode Change Should Succeed     data_bits=7   parity="E"   stop_bits=1
+    DUT Should Match String                 ${SHORT_TEST_STRING}  ${SHORT_TEST_STRING}
+    DUT Uart Mode Change Should Succeed     data_bits=7   parity="O"   stop_bits=1
+    DUT Should Not Match String or Timeout  ${SHORT_TEST_STRING}   ${SHORT_TEST_STRING}
     Show PHILIP Statistics
 
 Odd Parity 7 Bits
-    DUT UART mode should exist  dev=1
-    PHILIP.Setup Uart           parity=${UART_PARITY_ODD}   databits=${UART_DATA_BITS_7}
-    API Call Should Succeed     Uart Mode             data_bits=7   parity="O"   stop_bits=1
-    DUT Should Match String     1  ${SHORT_TEST_STRING}  ${SHORT_TEST_STRING}
-    API Call Should Succeed     Uart Mode             data_bits=7   parity="E"   stop_bits=1
-    DUT Should Not Match String or Timeout     1   ${SHORT_TEST_STRING}   ${SHORT_TEST_STRING}
+    DUT UART mode should exist
+    PHILIP.Setup Uart                       parity=${UART_PARITY_ODD}   databits=${UART_DATA_BITS_7}
+    DUT Uart Mode Change Should Succeed     data_bits=7   parity="O"   stop_bits=1
+    DUT Should Match String                 ${SHORT_TEST_STRING}  ${SHORT_TEST_STRING}
+    DUT Uart Mode Change Should Succeed     data_bits=7   parity="E"   stop_bits=1
+    DUT Should Not Match String or Timeout  ${SHORT_TEST_STRING}   ${SHORT_TEST_STRING}
     Show PHILIP Statistics
 
 Two Stop Bits
-    DUT UART mode should exist  dev=1
-    PHILIP.Setup Uart           parity=${UART_PARITY_ODD}
-    API Call Should Succeed     Uart Mode             data_bits=8   parity="N"   stop_bits=2
-    DUT Should Match String     1  ${TEST_STRING_FOR_STOP_BITS}  ${TEST_STRING_FOR_STOP_BITS}
-    API Call Should Succeed     Uart Mode             data_bits=8   parity="N"   stop_bits=1
-    DUT Should Not Match String or Timeout     1   ${TEST_STRING_FOR_STOP_BITS}   ${TEST_STRING_FOR_STOP_BITS}
+    DUT UART mode should exist
+    PHILIP.Setup Uart                       parity=${UART_PARITY_ODD}
+    DUT Uart Mode Change Should Succeed     data_bits=8   parity="N"   stop_bits=2
+    DUT Should Match String                 ${TEST_STRING_FOR_STOP_BITS}  ${TEST_STRING_FOR_STOP_BITS}
+    DUT Uart Mode Change Should Succeed     data_bits=8   parity="N"   stop_bits=1
+    DUT Should Not Match String or Timeout  ${TEST_STRING_FOR_STOP_BITS}   ${TEST_STRING_FOR_STOP_BITS}
     Show PHILIP Statistics
