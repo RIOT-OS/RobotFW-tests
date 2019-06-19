@@ -6,6 +6,7 @@ Suite Setup         Run Keywords    RIOT Reset
 ...                                 API Firmware Should Match
 # reset application before running any test
 Test Setup          Run Keywords    RIOT Reset
+...                                 API Sync Shell
 
 # import libs and keywords
 Library             Xtimer  port=%{PORT}  baudrate=%{BAUD}  timeout=${10}
