@@ -25,7 +25,7 @@ Even Parity with 8 Bits Should Succeed
     API Result Data Should Contain  ${SHORT_TEST_STRING}
     UART Mode Change Should Succeed         data_bits=8  parity="O"  stop_bits=1
     API Call Should Timeout     Uart Write  ${SHORT_TEST_STRING}
-    Show PHILIP Statistics
+    PHILIP Log Stats
 
 Odd Parity with 8 Bits Should Succeed
     [Documentation]     Verify UART mode with 8 data bits and odd parity.
@@ -36,7 +36,7 @@ Odd Parity with 8 Bits Should Succeed
     API Result Data Should Contain  ${SHORT_TEST_STRING}
     UART Mode Change Should Succeed         data_bits=8  parity="E"  stop_bits=1
     API Call Should Timeout     Uart Write  ${SHORT_TEST_STRING}
-    Show PHILIP Statistics
+    PHILIP Log Stats
 
 Even Parity with 7 Bits Should Succeed
     [Documentation]     Verify UART mode with 7 data bits and even parity.
@@ -47,7 +47,7 @@ Even Parity with 7 Bits Should Succeed
     API Result Data Should Contain  ${SHORT_TEST_STRING}
     UART Mode Change Should Succeed         data_bits=7  parity="O"  stop_bits=1
     API Call Should Timeout     Uart Write  ${SHORT_TEST_STRING}
-    Show PHILIP Statistics
+    PHILIP Log Stats
 
 Odd Parity with 7 Bits Should Succeed
     [Documentation]     Verify UART mode with 7 data bits and odd parity.
@@ -58,7 +58,7 @@ Odd Parity with 7 Bits Should Succeed
     API Result Data Should Contain  ${SHORT_TEST_STRING}
     UART Mode Change Should Succeed         data_bits=7  parity="E"  stop_bits=1
     API Call Should Timeout     Uart Write  ${SHORT_TEST_STRING}
-    Show PHILIP Statistics
+    PHILIP Log Stats
 
 Write With Two Stop Bits Should Succeed
     [Documentation]     Verify UART mode with 2 stops bits.
@@ -70,4 +70,4 @@ Write With Two Stop Bits Should Succeed
     UART Mode Change Should Succeed         data_bits=8  parity="N"  stop_bits=1
     API Call Should Succeed     Uart Write  ${TEST_STRING_FOR_STOP_BITS}
     API Result Data Should Not Contain  ${TEST_STRING_FOR_STOP_BITS}
-    Show PHILIP Statistics
+    PHILIP Log Stats
