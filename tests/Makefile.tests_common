@@ -4,7 +4,9 @@ APPLICATION ?= tests_$(notdir $(patsubst %/,%,$(CURDIR)))
 TESTBASE ?= $(CURDIR)/../../
 RIOTBASE ?= $(TESTBASE)/RIOT
 BUILD_DIR ?= $(TESTBASE)/build
-
+# Default timeout for serial connection to a board
+CMD_TIMEOUT ?= 1
+export CMD_TIMEOUT
 # suppress output
 QUIET ?= 1
 # DEVELHELP enabled by default for all tests, set 0 to disable
