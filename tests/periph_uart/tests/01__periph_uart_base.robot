@@ -16,63 +16,72 @@ Variables           test_vars.py
 Force Tags          periph  uart
 
 *** Test Cases ***
-Echo
+Short Echo Should Succeed
+    [Documentation]     Write short string to UART and verify echo reply.
     PHILIP.Setup Uart
     UART Init and Flush Should Succeed
     API Call Should Succeed     Uart Write  ${SHORT_TEST_STRING}
     API Result Data Should Contain  ${SHORT_TEST_STRING}
     Show PHILIP Statistics
 
-Long Echo
+Long Echo Should Succeed
+    [Documentation]     Write long string to UART and verify echo reply.
     PHILIP.Setup Uart
     UART Init and Flush Should Succeed
     API Call Should Succeed     Uart Write  ${LONG_TEST_STRING}
     API Result Data Should Contain  ${LONG_TEST_STRING}
     Show PHILIP Statistics
 
-Extended Echo
+Extended Short Echo Should Succeed
+    [Documentation]     Verify echo of short string to UART.
     PHILIP.Setup Uart           mode=1
     UART Init and Flush Should Succeed
     API Call Should Succeed     Uart Write  ${SHORT_TEST_STRING}
     API Result Data Should Contain  ${SHORT_TEST_STRING_INC}
     Show PHILIP Statistics
 
-Extended Long Echo
+Extended Long Echo Should Succeed
+    [Documentation]     Verify echo of long string to UART.
     PHILIP.Setup Uart           mode=1
     UART Init and Flush Should Succeed
     API Call Should Succeed     Uart Write  ${LONG_TEST_STRING}
     API Result Data Should Contain  ${LONG_TEST_STRING_INC}
     Show PHILIP Statistics
 
-Register Access
+Register Access Should Succeed
+    [Documentation]     Verify access of user register via UART.
     PHILIP.Setup Uart           mode=2
     UART Init and Flush Should Succeed
     API Call Should Succeed     Uart Write          ${REG_USER_READ}
     Should Be Equal             ${RESULT['data']}   ${REG_USER_READ_DATA}
     Show PHILIP Statistics
 
-Should Not Access Invalid Register
+Invalid Register Access Should Fail
+    [Documentation]     Verfiy access of invalid register via UART fails.
     PHILIP.Setup Uart           mode=2
     UART Init and Flush Should Succeed
     API Call Should Succeed     Uart Write          ${REG_WRONG_READ}
     Should Be Equal             ${RESULT['data']}   ${REG_WRONG_READ_DATA}
     Show PHILIP Statistics
 
-Baud Test 38400
-    PHILIP.Setup Uart           baudrate=38400
-    UART Init and Flush Should Succeed      baud=${38400}
-    API Call Should Succeed     Uart Write  ${SHORT_TEST_STRING}
-    API Result Data Should Contain  ${SHORT_TEST_STRING}
-    Show PHILIP Statistics
-
-Baud Test 9600
+Baudrate 9600 Should Succeed
+    [Documentation]     Verify UART write with baudrate 9600.
     PHILIP.Setup Uart           baudrate=9600
     UART Init and Flush Should Succeed      baud=${9600}
     API Call Should Succeed     Uart Write  ${SHORT_TEST_STRING}
     API Result Data Should Contain  ${SHORT_TEST_STRING}
     Show PHILIP Statistics
 
-Wrong Baud Test
+Baudrate 38400 Should Succeed
+    [Documentation]     Verify UART write with baudrate 38400.
+    PHILIP.Setup Uart           baudrate=38400
+    UART Init and Flush Should Succeed      baud=${38400}
+    API Call Should Succeed     Uart Write  ${SHORT_TEST_STRING}
+    API Result Data Should Contain  ${SHORT_TEST_STRING}
+    Show PHILIP Statistics
+
+Baudrate Mismatch Should Fail
+    [Documentation]     Verify UART write fails when baudrates do not match.
     PHILIP.Setup Uart           baudrate=9600
     UART Init and Flush Should Succeed      baud=${38400}
     API Call Should Timeout     Uart Write  ${SHORT_TEST_STRING}
