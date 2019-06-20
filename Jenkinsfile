@@ -55,10 +55,8 @@ stage('Notify') {
     node("master") {
         def jobName = currentBuild.fullDisplayName
         emailext (
-            attachLog: true,
             body: '''${SCRIPT, template="groovy-html.template"}''',
             mimeType: 'text/html',
-            compressLog: true,
             subject: "${jobName}",
             from: 'jenkins@riot-ci.inet.haw-hamburg.de',
             to: '${DEFAULT_RECIPIENTS}',
