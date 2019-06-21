@@ -8,14 +8,13 @@ PHILIP Reset
     [Documentation]     Reset the PHiLIP MCU
     PHILIP.Reset MCU
 
-Show PHILIP Statistics
-    [Documentation]     Show rx/tx counters and error flags.
-    ${rx}   ${tx} =  PHILIP.Get counters
-    ${pe}   ${fe}   ${nf}   ${ore} =  PHILIP.Get error flags
-    Set Test Message   RX: ${rx['data']}, TX: ${tx['data']}, PE: ${pe['data']}, FE: ${fe['data']}, NF: ${nf['data']}, ORE: ${ore['data']}
+PHILIP Stats
+    [Documentation]     Return PHiLIP RX/TX counters and error flags.
+    ${rx}  ${tx}=                   PHILIP.Get counters
+    ${pe}  ${fe}  ${nf}  ${ore}=    PHILIP.Get error flags
+    [return]  RX: ${rx['data']}, TX: ${tx['data']}, PE: ${pe['data']}, FE: ${fe['data']}, NF: ${nf['data']}, ORE: ${ore['data']}
 
-Get PHILIP Statistics
-    [Documentation]     Return rx/tx counters and error flags.
-    ${rx}   ${tx}=                    PHILIP.Get counters
-    ${pe}   ${fe}   ${nf}   ${ore}=   PHILIP.Get error flags
-    [return]                          RX: ${rx['data']}, TX: ${tx['data']}, PE: ${pe['data']}, FE: ${fe['data']}, NF: ${nf['data']}, ORE: ${ore['data']}
+PHILIP Log Stats
+    [Documentation]     Write PHiLIP statistics to log and print on console
+    ${stats}=           PHILIP Stats
+    Log                 ${stats}
