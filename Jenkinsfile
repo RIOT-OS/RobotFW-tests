@@ -36,7 +36,7 @@ def parallelSteps (board, test) {
                     def prnum = params.RIOT_PULL.toInteger()
                     sh """
                         cd RIOT
-                        git fetch origin pull/${prnum}/head:pr-${prnum}"
+                        git fetch origin pull/${prnum}/head:pr-${prnum}
                         git checkout pr-${params.RIOT_VERSION}
                     """
                 }
