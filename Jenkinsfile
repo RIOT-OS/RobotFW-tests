@@ -6,15 +6,15 @@ def triggers = []
 
 if ("${env.BRANCH_NAME}" == 'master') {
     // build master with latest RIOT daily between 5 and 7 AM
-    triggers << parameterizedCron('H H(5-7) * * * % RIOT_VERSION=master')
+    triggers << parameterizedCron('H H(5-7) * * * % HIL_RIOT_VERSION=master')
 } else {
     // no scheduled build
 }
 
 properties([
   parameters([
-        choice(name: 'RIOT_VERSION', choices: ['submodule', 'master', 'pull'], description: 'The RIOT branch or PR to test.'),
-        string(name: 'RIOT_PULL', defaultValue: '0', description: 'RIOT pull request number')
+        choice(name: 'HIL_RIOT_VERSION', choices: ['submodule', 'master', 'pull'], description: 'The RIOT branch or PR to test.'),
+        string(name: 'HIL_RIOT_PULL', defaultValue: '0', description: 'RIOT pull request number')
    ]),
    pipelineTriggers(triggers)
 ])
@@ -27,13 +27,13 @@ def parallelSteps (board, test) {
                 def test_name = test.replaceAll('/', '_')
                 echo "DIR: ${test}, APP: ${test_name}"
                 checkout scm
-                if ("${params.RIOT_VERSION}" == 'master') {
+                if ("${params.HIL_RIOT_VERSION}" == 'master') {
                     // checkout latest RIOT master
                     sh 'git submodule update --init --remote --rebase'
                 }
-                else if ("${params.RIOT_VERSION}" == 'pull' && "${params.RIOT_PULL}" != '0') {
+                else if ("${params.HIL_RIOT_VERSION}" == 'pull' && "${params.HIL_RIOT_PULL}" != '0') {
                     // checkout specified PR number
-                    def prnum = params.RIOT_PULL.toInteger()
+                    def prnum = params.HIL_RIOT_PULL.toInteger()
                     sh """
                         cd RIOT
                         git fetch origin pull/${prnum}/head:pr-${prnum}
