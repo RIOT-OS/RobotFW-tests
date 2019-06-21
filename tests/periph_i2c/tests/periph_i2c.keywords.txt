@@ -1,5 +1,5 @@
 *** Settings ***
-Library             I2Cdevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${10}
+Library             I2Cdevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${%{CMD_TIMEOUT}}
 
 Resource            api_shell.keywords.txt
 Resource            philip.keywords.txt
