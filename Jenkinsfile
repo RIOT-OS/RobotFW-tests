@@ -37,7 +37,7 @@ def parallelSteps (board, test) {
                     sh """
                         cd RIOT
                         git fetch origin pull/${prnum}/head:pr-${prnum}
-                        git checkout pr-${params.RIOT_VERSION}
+                        git checkout pr-${prnum}
                     """
                 }
                 else {
