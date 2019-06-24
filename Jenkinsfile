@@ -4,11 +4,9 @@ def tests = []
 
 def triggers = []
 
-if ("${env.BRANCH_NAME}" == 'master') {
+if ("${env.BRANCH_NAME}" == 'nightly') {
     // build master with latest RIOT daily between 5 and 7 AM
-    triggers << parameterizedCron('H H(5-7) * * * % HIL_RIOT_VERSION=master')
-} else {
-    // no scheduled build
+    triggers << parameterizedCron('H H(5-6) * * * % HIL_RIOT_VERSION=master')
 }
 
 properties([
@@ -22,6 +20,12 @@ properties([
 def stepClone()
 {
     checkout scm
+    // update nightly branch to latest master and push
+    if ("${env.BRANCH_NAME}" == 'nightly') {
+        sh 'git fetch --all'
+        sh 'git rebase origin/master'
+        sh 'git push origin nightly'
+    }
     if ("${params.HIL_RIOT_VERSION}" == 'master') {
         // checkout latest RIOT master
         sh 'git submodule update --init --remote --rebase'
