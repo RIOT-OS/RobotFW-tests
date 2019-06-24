@@ -20,10 +20,10 @@ properties([
 def stepClone()
 {
     checkout scm
-    // update nightly branch to latest master and push
+    // update nightly branch to latest master
     if ("${env.BRANCH_NAME}" == 'nightly') {
+        // update nightly branch to master
         sh 'git pull --rebase origin master'
-        sh 'git push origin nightly'
     }
     if ("${params.HIL_RIOT_VERSION}" == 'master') {
         // checkout latest RIOT master
@@ -74,6 +74,17 @@ def parallelSteps (board, test) {
 stage ("setup") {
     node ("master") {
         checkout scm
+        if ("${env.BRANCH_NAME}" == 'nightly') {
+            // update nightly branch to latest master and push
+            withCredentials([usernamePassword(credentialsId: 'da54a500-472f-4005-9399-a0ab5ce4da7e', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                sh("""
+                    git config --global credential.username ${GIT_USERNAME}
+                    git config --global credential.helper "!echo password=${GIT_PASSWORD}; echo"
+                    git pull --rebase origin master
+                    git push origin HEAD:nightly
+                """)
+            }
+        }
         // discover test applications
         tests = sh(returnStdout: true, script: 'find tests/ -maxdepth 1 -mindepth 1 -type d').tokenize()
         echo "run TESTS: " + tests.join(",")
