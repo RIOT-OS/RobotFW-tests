@@ -22,8 +22,7 @@ def stepClone()
     checkout scm
     // update nightly branch to latest master and push
     if ("${env.BRANCH_NAME}" == 'nightly') {
-        sh 'git fetch --all'
-        sh 'git rebase origin/master'
+        sh 'git pull --rebase origin master'
         sh 'git push origin nightly'
     }
     if ("${params.HIL_RIOT_VERSION}" == 'master') {
