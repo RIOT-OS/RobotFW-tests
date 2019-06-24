@@ -19,35 +19,49 @@ properties([
    pipelineTriggers(triggers)
 ])
 
+def stepClone()
+{
+    checkout scm
+    if ("${params.HIL_RIOT_VERSION}" == 'master') {
+        // checkout latest RIOT master
+        sh 'git submodule update --init --remote --rebase'
+    }
+    else if ("${params.HIL_RIOT_VERSION}" == 'pull' && "${params.HIL_RIOT_PULL}" != '0') {
+        // checkout specified PR number
+        def prnum = params.HIL_RIOT_PULL.toInteger()
+        sh """
+            cd RIOT
+            git fetch origin pull/${prnum}/head:pr-${prnum}
+            git checkout pr-${prnum}
+        """
+    }
+    else {
+        // default to submodule commit
+        sh 'git submodule update --init'
+    }
+}
+
+def stepFlash(board, test)
+{
+    sh "make -C ${test} flash"
+}
+
+def stepTests(board, test)
+{
+    def test_name = test.replaceAll('/', '_')
+    sh "set +e; make -C ${test} robot-test; set -e"
+    archiveArtifacts artifacts: "build/robot/${board}/${test_name}/*.xml"
+    junit "build/robot/${board}/${test_name}/xunit.xml"
+}
+
 // function to return steps per board
 def parallelSteps (board, test) {
     return {
         catchError {
             node (board) {
-                def test_name = test.replaceAll('/', '_')
-                echo "DIR: ${test}, APP: ${test_name}"
-                checkout scm
-                if ("${params.HIL_RIOT_VERSION}" == 'master') {
-                    // checkout latest RIOT master
-                    sh 'git submodule update --init --remote --rebase'
-                }
-                else if ("${params.HIL_RIOT_VERSION}" == 'pull' && "${params.HIL_RIOT_PULL}" != '0') {
-                    // checkout specified PR number
-                    def prnum = params.HIL_RIOT_PULL.toInteger()
-                    sh """
-                        cd RIOT
-                        git fetch origin pull/${prnum}/head:pr-${prnum}
-                        git checkout pr-${prnum}
-                    """
-                }
-                else {
-                    // default to submodule commit
-                    sh 'git submodule update --init'
-                }
-                sh "make -C ${test} flash"
-                sh "set +e; make -C ${test} robot-test; set -e"
-                archiveArtifacts artifacts: "build/robot/${board}/${test_name}/*.xml"
-                junit "build/robot/${board}/${test_name}/xunit.xml"
+                stepClone()
+                stepFlash(board, test)
+                stepTests(board, test)
             }
         }
     }
