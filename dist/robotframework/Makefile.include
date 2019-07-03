@@ -7,7 +7,7 @@ ROBOT_FILES ?= $(sort $(wildcard tests/*.robot))
 # RF make target
 robot-test: $(ROBOT_FILES)
 	python3 -m robot.run \
-				--name $(APPLICATION) \
+				--name "$(BOARD).$(APPLICATION)" \
 				--noncritical warn-if-failed \
 				--settag "APP_$(APPLICATION)" \
 				--settag "BOARD_$(BOARD)" \
