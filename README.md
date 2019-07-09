@@ -41,6 +41,12 @@ Besides the applications that are written in C, it is recommend to use Python
 to write tools or interfaces related to running tests. That allows for simple
 integration with the RF test scripts (and re-usability in general).
 
+## Testing and Changing RIOT Versions
+
+To test a RIOT version go into the RIOT subdirectory and change to the
+desired state.  Alternatively, the `RIOTBASE=<path_to_riot_directory>` can
+be used.
+
 ## Build System Integration
 
 The (HIL) tests, i.e., the RF test scripts, utilise and integrate with the RIOT
