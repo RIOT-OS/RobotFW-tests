@@ -1,7 +1,7 @@
 APPLICATION ?= tests_$(notdir $(patsubst %/,%,$(CURDIR)))
 
 # set and redirect default paths
-TESTBASE ?= $(CURDIR)/../../
+TESTBASE ?= $(CURDIR)/../..
 RIOTBASE ?= $(TESTBASE)/RIOT
 BUILD_DIR ?= $(TESTBASE)/build
 # Default timeout for serial connection to a board
@@ -13,6 +13,12 @@ QUIET ?= 1
 DEVELHELP ?= 1
 # expose extra metadata
 CFLAGS += -DRIOT_APPLICATION=\"$(APPLICATION)\"
+
+# Add the common folder for all common test helpers
+EXTERNAL_MODULE_DIRS += $(TESTBASE)/tests/common
+
+# All tests here _should_ use the test helpers
+USEMODULE += test_helpers
 
 # include RF specific settings
 include $(TESTBASE)/dist/robotframework/Makefile.include
