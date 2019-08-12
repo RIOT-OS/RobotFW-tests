@@ -86,7 +86,14 @@ stage ("setup") {
             }
         }
         // discover test applications
-        tests = sh(returnStdout: true, script: 'find tests/ -maxdepth 1 -mindepth 1 -type d').tokenize()
+        tests = sh(returnStdout: true,
+                   script:  """
+                                for dir in \$(find tests -maxdepth 1 -mindepth 1 -type d); do
+                                    [ -d \$dir/tests ] && {
+                                        echo \$dir
+                                    }
+                                done
+                            """).tokenize()
         echo "run TESTS: " + tests.join(",")
         // discover available boards
         for (int i=0; i<nodes.size(); ++i) {
