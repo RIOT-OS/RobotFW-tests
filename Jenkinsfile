@@ -89,9 +89,7 @@ stage ("setup") {
         tests = sh(returnStdout: true,
                    script:  """
                                 for dir in \$(find tests -maxdepth 1 -mindepth 1 -type d); do
-                                    [ -d \$dir/tests ] && {
-                                        echo \$dir
-                                    }
+                                    [ -d \$dir/tests ] && { echo \$dir ; } || true
                                 done
                             """).tokenize()
         echo "run TESTS: " + tests.join(",")
