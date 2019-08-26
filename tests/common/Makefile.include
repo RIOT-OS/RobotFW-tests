@@ -1,0 +1,8 @@
+RF_TESTS_COMMON_DIR := $(abspath $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST)))))
+ifneq (,$(filter test_helpers,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(RF_TESTS_COMMON_DIR)/include
+endif
+
+ifeq ($(USE_JSON_SHELL_PARSER),1)
+  CFLAGS += -DJSON_SHELL_PARSER
+endif
