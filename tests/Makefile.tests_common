@@ -7,6 +7,9 @@ BUILD_DIR ?= $(TESTBASE)/build
 # Default timeout for serial connection to a board
 CMD_TIMEOUT ?= 1
 export CMD_TIMEOUT
+# Default wait time before connecting the serial
+CONNECT_WAIT ?= 0
+export CONNECT_WAIT
 # suppress output
 QUIET ?= 1
 # DEVELHELP enabled by default for all tests, set 0 to disable

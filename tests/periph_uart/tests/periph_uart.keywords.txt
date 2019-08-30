@@ -1,5 +1,5 @@
 *** Settings ***
-Library             UartDevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${%{CMD_TIMEOUT}}
+Library             UartDevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${%{CMD_TIMEOUT}}  connect_wait=${%{CONNECT_WAIT}}
 
 Resource            api_shell.keywords.txt
 Resource            philip.keywords.txt

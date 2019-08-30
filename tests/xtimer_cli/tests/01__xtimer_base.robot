@@ -9,7 +9,7 @@ Test Setup          Run Keywords    RIOT Reset
 ...                                 API Sync Shell
 
 # import libs and keywords
-Library             Xtimer  port=%{PORT}  baudrate=%{BAUD}  timeout=${%{CMD_TIMEOUT}}
+Library             Xtimer  port=%{PORT}  baudrate=%{BAUD}  timeout=${%{CMD_TIMEOUT}}  connect_wait=${%{CONNECT_WAIT}}
 Resource            api_shell.keywords.txt
 Resource            riot_base.keywords.txt
 
