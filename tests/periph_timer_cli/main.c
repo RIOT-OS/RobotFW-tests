@@ -32,7 +32,8 @@
 #define CONVERT_ERROR   (-32768)
 #define RESULT_OK       (0)
 #define RESULT_ERROR    (-1)
-#define INVALID_ARGS    puts("Error: Invalid number of arguments");
+#define INVALID_ARGS    puts("Error: Invalid number of arguments")
+#define PARSE_ERROR     puts("Error: unable to parse arguments")
 
 #define CB_TOGGLE_STR   "cb_toggle"
 #define CB_HIGH_STR     "cb_high"
@@ -40,47 +41,60 @@
 
 static mutex_t cb_mutex;
 
-static inline int _get_num(const char *str)
+static inline int _get_num(const char *str, uint32_t* val)
 {
     errno = 0;
     char *temp;
-    long val = strtol(str, &temp, 0);
+    long v = strtol(str, &temp, 0);
 
-    if (temp == str || *temp != '\0' ||
-        ((val == LONG_MIN || val == LONG_MAX) && errno == ERANGE)) {
-        val = CONVERT_ERROR;
+    if (temp == str || *temp != '\0' || (v < 0) ||
+        ((v == LONG_MIN || v == LONG_MAX) && errno == ERANGE)) {
+        return CONVERT_ERROR;
     }
-    return (int)val;
+
+    *val = (uint32_t)v;
+    return RESULT_OK;
 }
 
-static int _check_param(int argc, char **argv, int c_min, int c_max, char *use)
+static int _check_param(int argc, char **argv, uint32_t *dev, int c_min,
+                        int c_max, char *use)
 {
-    int dev;
-
     if (argc - 1 < c_min || argc - 1 > c_max) {
         printf("Usage: %s %s\n", argv[0], use);
         INVALID_ARGS;
         return ARG_ERROR;
     }
 
-    dev = _get_num(argv[1]);
-    if (dev < 0 || dev >= (int)TIMER_NUMOF) {
-        printf("Error: No device, only %d supported\n", (int)TIMER_NUMOF);
+    if ((_get_num(argv[1], dev) != RESULT_OK) || *dev >= TIMER_NUMOF) {
+        printf("Error: No device, only %u supported\n", TIMER_NUMOF);
         return ARG_ERROR;
     }
-    return dev;
+
+    return RESULT_OK;
 }
 
-static int _print_cmd_result(const char *cmd, bool success, int ret)
+static int _print_cmd_result(const char *cmd, bool success, int ret,
+                             bool print_ret)
 {
-    printf("%s: %s(): [%d]\n", success ? "Success" : "Error", cmd, ret);
+    printf("%s: %s()", success ? "Success" : "Error", cmd);
+
+    if (print_ret) {
+        printf(": [%d]", ret);
+    }
+
+    printf("\n");
+
     return success ? RESULT_OK : RESULT_ERROR;
 }
 
 static gpio_t _get_pin(const char *port_str, const char *pin_str)
 {
-    int port = _get_num(port_str);
-    int pin = _get_num(pin_str);
+    uint32_t port, pin = 0;
+
+    if (_get_num(port_str, &port) == CONVERT_ERROR ||
+        _get_num(pin_str, &pin) == CONVERT_ERROR) {
+        return GPIO_UNDEF;
+    }
 
     return GPIO_PIN(port, pin);
 }
@@ -111,39 +125,38 @@ void cb_low(void *arg, int channel)
 
 int cmd_timer_bench_read(int argc, char **argv)
 {
-    int timer_dev = _check_param(argc, argv, 4, 4,
-                                 "timerdev repeat_cnt gpio_port gpio_pin");
+    uint32_t dev, repeat_cnt = 0;
 
-    if (timer_dev == ARG_ERROR) {
+    if (_check_param(argc, argv, &dev, 4, 4,
+                     "dev repeat_cnt gpio_port gpio_pin") != RESULT_OK) {
         return -1;
     }
-
-    uint32_t repeat_cnt = _get_num(argv[2]);
 
     gpio_t pin = _get_pin(argv[3], argv[4]);
 
     gpio_toggle(pin);
 
     for (uint32_t i = 0; i < repeat_cnt; i++) {
-        timer_read(timer_dev);
+        timer_read(dev);
     }
 
     gpio_toggle(pin);
 
-    printf("Success: cmd_timer_read_bench()\n");
-    return RESULT_OK;
+    return _print_cmd_result("cmd_timer_read_bench", true, 0, false);
 }
 
 int cmd_timer_init(int argc, char **argv)
 {
-    int timer_dev = _check_param(argc, argv, 5, 5,
-                                 "dev freq cb gpio_port gpio_pin");
+    uint32_t dev, freq = 0;
 
-    if (timer_dev == ARG_ERROR) {
+    if (_check_param(argc, argv, &dev, 5, 5, "dev freq cb gpio_port gpio_pin")
+        != RESULT_OK) {
         return -1;
     }
 
-    unsigned long freq = _get_num(argv[2]);
+    if (_get_num(argv[2], &freq) !=  RESULT_OK) {
+        return -2;
+    }
 
     timer_cb_t cb = NULL;
 
@@ -162,41 +175,46 @@ int cmd_timer_init(int argc, char **argv)
     if(cb == NULL) {
         printf("no valid callback name given. Valid values or %s, %s or %s\n",
                CB_TOGGLE_STR, CB_HIGH_STR, CB_LOW_STR);
-        return -2;
+        return -3;
     }
 
     gpio_t pin = _get_pin(argv[4], argv[5]);
 
     gpio_init(pin, GPIO_OUT);
 
-    int res = timer_init(timer_dev, freq, cb, (void*)(intptr_t)pin);
+    int res = timer_init(dev, freq, cb, (void*)(intptr_t)pin);
 
-    return _print_cmd_result("timer_init", res == 0, res);
+    return _print_cmd_result("timer_init", res == 0, res, true);
 }
 
 int _timer_set(int argc, char **argv, bool absolute)
 {
     int res;
-    int timer_dev = _check_param(argc, argv, 5, 5,
-                                 "dev channel ticks gpio_port gpio_pin");
+    uint32_t dev = 0;
 
-    if (timer_dev == ARG_ERROR) {
+    if (_check_param(argc, argv, &dev, 5, 5,
+                     "dev channel ticks gpio_port gpio_pin") != RESULT_OK) {
         return -1;
     }
 
-    unsigned long chan = _get_num(argv[2]);
-    unsigned long timeout = _get_num(argv[3]);
+    uint32_t chan, timeout = 0;
+
+    if (_get_num(argv[2], &chan) != RESULT_OK ||
+        _get_num(argv[3], &timeout) != RESULT_OK) {
+        PARSE_ERROR;
+    }
+
     gpio_t pin = _get_pin(argv[4], argv[5]);
 
     mutex_lock(&cb_mutex);
 
     if (absolute) {
         gpio_toggle(pin);
-        res = timer_set_absolute(timer_dev, chan, timeout);
+        res = timer_set_absolute(dev, chan, timeout);
     }
     else {
         gpio_toggle(pin);
-        res = timer_set(timer_dev, chan, timeout);
+        res = timer_set(dev, chan, timeout);
     }
 
     /* wait for unlock by cb */
@@ -210,66 +228,66 @@ int _timer_set(int argc, char **argv, bool absolute)
 int cmd_timer_set(int argc, char **argv)
 {
     int res = _timer_set(argc, argv, false);
-    return _print_cmd_result("timer_set", res == 1, res);
+    return _print_cmd_result("timer_set", res == 1, res, true);
 }
 
-int cmd_timer_absolute(int argc, char **argv)
+int cmd_timer_set_absolute(int argc, char **argv)
 {
     int res = _timer_set(argc, argv, true);
-    return _print_cmd_result("timer_set_absolute", res == 1, res);
+    return _print_cmd_result("timer_set_absolute", res == 1, res, true);
 }
 
 int cmd_timer_clear(int argc, char **argv)
 {
-    int timer_dev = _check_param(argc, argv, 2, 2, "dev channel");
+    uint32_t dev, chan = 0;
 
-    if (timer_dev == ARG_ERROR) {
+    if (_check_param(argc, argv, &dev, 2, 2, "dev channel") != RESULT_OK) {
         return -1;
     }
 
-    unsigned long chan = _get_num(argv[2]);
+    if (_get_num(argv[2], &chan) != RESULT_OK) {
+        PARSE_ERROR;
+    }
 
-    int res = timer_clear(timer_dev, chan);
+    int res = timer_clear(dev, chan);
 
-    return _print_cmd_result("timer_clear", res == 1, res);
+    return _print_cmd_result("timer_clear", res == 1, res, true);
 }
 
 int cmd_timer_read(int argc, char **argv)
 {
-    int timer_dev = _check_param(argc, argv, 1, 1, "dev");
+    uint32_t dev = 0;
 
-    if (timer_dev == ARG_ERROR) {
+    if (_check_param(argc, argv, &dev, 1, 1, "dev") != RESULT_OK) {
         return -1;
     }
 
-    int res = timer_read(timer_dev);
-    return _print_cmd_result("timer_read", true, res);
+    int res = timer_read(dev);
+    return _print_cmd_result("timer_read", true, res, true);
 }
 
 int cmd_timer_start(int argc, char **argv)
 {
-    int timer_dev = _check_param(argc, argv, 1, 1, "dev");
+    uint32_t dev = 0;
 
-    if (timer_dev == ARG_ERROR) {
+    if (_check_param(argc, argv, &dev, 1, 1, "dev") != RESULT_OK) {
         return -1;
     }
 
-    timer_start(timer_dev);
-    puts("Success: timer_start()\n");
-    return 0;
+    timer_start(dev);
+    return _print_cmd_result("timer_start", true, 0, false);
 }
 
 int cmd_timer_stop(int argc, char **argv)
 {
-    int timer_dev = _check_param(argc, argv, 1, 1, "dev");
+    uint32_t dev = 0;
 
-    if (timer_dev == ARG_ERROR) {
+    if (_check_param(argc, argv, &dev, 1, 1, "dev") != RESULT_OK) {
         return -1;
     }
 
-    timer_stop(timer_dev);
-    puts("Success: timer_stop()\n");
-    return 0;
+    timer_stop(dev);
+    return _print_cmd_result("timer_stop", true, 0, false);
 }
 
 int cmd_get_metadata(int argc, char **argv)
@@ -287,7 +305,8 @@ static const shell_command_t shell_commands[] = {
       cmd_timer_bench_read },
     { "timer_init", "init_timer", cmd_timer_init },
     { "timer_set", "set timer to relative value", cmd_timer_set },
-    { "timer_absolute", "set timer to absolute value", cmd_timer_absolute },
+    { "timer_set_absolute", "set timer to absolute value",
+      cmd_timer_set_absolute },
     { "timer_clear", "clear timer", cmd_timer_clear },
     { "timer_read", "read timer", cmd_timer_read },
     { "timer_start", "start timer", cmd_timer_start },
