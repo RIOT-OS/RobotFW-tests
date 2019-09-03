@@ -2,6 +2,8 @@
 Library     String
 Library     Collections
 
+Resource    util.keywords.txt
+
 *** Keywords ***
 API Call Expect
     [Documentation]     Fails if the result of the given ``call`` does not
@@ -26,9 +28,14 @@ API Call Should Error
     [Arguments]         ${call}  @{args}  &{kwargs}
     API Call Expect     Error  ${call}  @{args}  &{kwargs}
 
-API Get Last Result As Integer
+API Result Data As Integer
     [Documentation]     Return result of last API call as an integer
     ${ret}=             Convert to Integer  ${RESULT['data'][0]}
+    [Return]            ${ret}
+
+API Result Data As List
+    [Documentation]     Return result of last API call as list
+    ${ret}=             Set Variable  ${RESULT['data']}
     [Return]            ${ret}
 
 API Result Message Should Contain

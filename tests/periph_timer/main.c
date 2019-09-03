@@ -40,6 +40,7 @@
 #define CB_LOW_STR      "cb_low"
 
 static mutex_t cb_mutex;
+static gpio_t debug_pins[TIMER_NUMOF];
 
 static inline int _get_num(const char *str, uint32_t* val)
 {
@@ -123,35 +124,15 @@ void cb_low(void *arg, int channel)
     mutex_unlock(&cb_mutex);
 }
 
-int cmd_timer_bench_read(int argc, char **argv)
-{
-    uint32_t dev, repeat_cnt = 0;
-
-    if (_check_param(argc, argv, &dev, 4, 4,
-                     "dev repeat_cnt gpio_port gpio_pin") != RESULT_OK) {
-        return -1;
-    }
-
-    gpio_t pin = _get_pin(argv[3], argv[4]);
-
-    gpio_toggle(pin);
-
-    for (uint32_t i = 0; i < repeat_cnt; i++) {
-        timer_read(dev);
-    }
-
-    gpio_toggle(pin);
-
-    return _print_cmd_result("cmd_timer_read_bench", true, 0, false);
-}
+/* API calls */
 
 int cmd_timer_init(int argc, char **argv)
 {
-    uint32_t dev, freq = 0;
+    uint32_t dev = 0;
+    uint32_t freq = 0;
 
-    if (_check_param(argc, argv, &dev, 5, 5, "dev freq cb gpio_port gpio_pin")
-        != RESULT_OK) {
-        return -1;
+    if (_check_param(argc, argv, &dev, 3, 3, "dev freq cb") != RESULT_OK) {
+        return RESULT_ERROR;
     }
 
     if (_get_num(argv[2], &freq) !=  RESULT_OK) {
@@ -178,11 +159,7 @@ int cmd_timer_init(int argc, char **argv)
         return -3;
     }
 
-    gpio_t pin = _get_pin(argv[4], argv[5]);
-
-    gpio_init(pin, GPIO_OUT);
-
-    int res = timer_init(dev, freq, cb, (void*)(intptr_t)pin);
+    int res = timer_init(dev, freq, cb, (void*)(intptr_t)debug_pins[dev]);
 
     return _print_cmd_result("timer_init", res == 0, res, true);
 }
@@ -192,8 +169,8 @@ int _timer_set(int argc, char **argv, bool absolute)
     int res;
     uint32_t dev = 0;
 
-    if (_check_param(argc, argv, &dev, 5, 5,
-                     "dev channel ticks gpio_port gpio_pin") != RESULT_OK) {
+    if (_check_param(argc, argv, &dev, 3, 3,
+                     "dev channel ticks") != RESULT_OK) {
         return -1;
     }
 
@@ -204,16 +181,15 @@ int _timer_set(int argc, char **argv, bool absolute)
         PARSE_ERROR;
     }
 
-    gpio_t pin = _get_pin(argv[4], argv[5]);
+    gpio_t pin = debug_pins[dev];
 
     mutex_lock(&cb_mutex);
 
+    gpio_toggle(pin);
     if (absolute) {
-        gpio_toggle(pin);
         res = timer_set_absolute(dev, chan, timeout);
     }
     else {
-        gpio_toggle(pin);
         res = timer_set(dev, chan, timeout);
     }
 
@@ -228,21 +204,22 @@ int _timer_set(int argc, char **argv, bool absolute)
 int cmd_timer_set(int argc, char **argv)
 {
     int res = _timer_set(argc, argv, false);
-    return _print_cmd_result("timer_set", res == 1, res, true);
+    return _print_cmd_result("timer_set", (res == 0), res, true);
 }
 
 int cmd_timer_set_absolute(int argc, char **argv)
 {
     int res = _timer_set(argc, argv, true);
-    return _print_cmd_result("timer_set_absolute", res == 1, res, true);
+    return _print_cmd_result("timer_set_absolute", (res == 0), res, true);
 }
 
 int cmd_timer_clear(int argc, char **argv)
 {
-    uint32_t dev, chan = 0;
+    uint32_t dev = 0;
+    uint32_t chan = 0;
 
     if (_check_param(argc, argv, &dev, 2, 2, "dev channel") != RESULT_OK) {
-        return -1;
+        return RESULT_ERROR;
     }
 
     if (_get_num(argv[2], &chan) != RESULT_OK) {
@@ -251,7 +228,7 @@ int cmd_timer_clear(int argc, char **argv)
 
     int res = timer_clear(dev, chan);
 
-    return _print_cmd_result("timer_clear", res == 1, res, true);
+    return _print_cmd_result("timer_clear", (res == 0), res, true);
 }
 
 int cmd_timer_read(int argc, char **argv)
@@ -259,7 +236,7 @@ int cmd_timer_read(int argc, char **argv)
     uint32_t dev = 0;
 
     if (_check_param(argc, argv, &dev, 1, 1, "dev") != RESULT_OK) {
-        return -1;
+        return RESULT_ERROR;
     }
 
     printf("Success: timer_read(): [%u]\n", timer_read(dev));
@@ -271,7 +248,7 @@ int cmd_timer_start(int argc, char **argv)
     uint32_t dev = 0;
 
     if (_check_param(argc, argv, &dev, 1, 1, "dev") != RESULT_OK) {
-        return -1;
+        return RESULT_ERROR;
     }
 
     timer_start(dev);
@@ -283,11 +260,50 @@ int cmd_timer_stop(int argc, char **argv)
     uint32_t dev = 0;
 
     if (_check_param(argc, argv, &dev, 1, 1, "dev") != RESULT_OK) {
-        return -1;
+        return RESULT_ERROR;
     }
 
     timer_stop(dev);
     return _print_cmd_result("timer_stop", true, 0, false);
+}
+
+/* helper calls (non-API) */
+
+int cmd_timer_debug_pin(int argc, char **argv)
+{
+    uint32_t dev = 0;
+
+    if (_check_param(argc, argv, &dev, 3, 3, "dev gpio_port gpio_pin") != RESULT_OK) {
+        return RESULT_ERROR;
+    }
+    /* parse and init debug pin */
+    gpio_t pin = _get_pin(argv[2], argv[3]);
+    debug_pins[dev] = pin;
+    gpio_init(pin, GPIO_OUT);
+
+    return _print_cmd_result("timer_debug_pin", true, 0, false);
+}
+
+int cmd_timer_bench_read(int argc, char **argv)
+{
+    uint32_t dev = 0;
+    uint32_t repeat_cnt = 0;
+
+    if (_check_param(argc, argv, &dev, 2, 2, "dev repeat_cnt") != RESULT_OK) {
+        return RESULT_ERROR;
+    }
+
+    gpio_t pin = debug_pins[dev];
+
+    gpio_toggle(pin);
+
+    for (uint32_t i = 0; i < repeat_cnt; i++) {
+        timer_read(dev);
+    }
+
+    gpio_toggle(pin);
+
+    return _print_cmd_result("cmd_timer_read_bench", true, 0, false);
 }
 
 int cmd_get_metadata(int argc, char **argv)
@@ -301,9 +317,7 @@ int cmd_get_metadata(int argc, char **argv)
 }
 
 static const shell_command_t shell_commands[] = {
-    { "timer_read_bench", "execute multiple reads to determine overhead",
-      cmd_timer_bench_read },
-    { "timer_init", "init_timer", cmd_timer_init },
+    { "timer_init", "Initialize timer device", cmd_timer_init },
     { "timer_set", "set timer to relative value", cmd_timer_set },
     { "timer_set_absolute", "set timer to absolute value",
       cmd_timer_set_absolute },
@@ -311,6 +325,9 @@ static const shell_command_t shell_commands[] = {
     { "timer_read", "read timer", cmd_timer_read },
     { "timer_start", "start timer", cmd_timer_start },
     { "timer_stop", "stop timer", cmd_timer_stop },
+    { "timer_debug_pin", "config debug pin", cmd_timer_debug_pin },
+    { "timer_read_bench", "execute multiple reads to determine overhead",
+      cmd_timer_bench_read },
     { "get_metadata", "Get the metadata of the test firmware",
       cmd_get_metadata },
     { NULL, NULL, NULL }
