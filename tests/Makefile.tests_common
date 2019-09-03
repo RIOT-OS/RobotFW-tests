@@ -10,6 +10,11 @@ export CMD_TIMEOUT
 # Default wait time before connecting the serial
 CONNECT_WAIT ?= 0
 export CONNECT_WAIT
+# default periph/timer config
+PERIPH_TIMER_DEV ?= 0
+export PERIPH_TIMER_DEV
+PERIPH_TIMER_HZ ?= 1000000
+export PERIPH_TIMER_HZ
 # suppress output
 QUIET ?= 1
 # DEVELHELP enabled by default for all tests, set 0 to disable
