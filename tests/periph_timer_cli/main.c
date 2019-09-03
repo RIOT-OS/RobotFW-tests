@@ -262,8 +262,8 @@ int cmd_timer_read(int argc, char **argv)
         return -1;
     }
 
-    int res = timer_read(dev);
-    return _print_cmd_result("timer_read", true, res, true);
+    printf("Success: timer_read(): [%u]\n", timer_read(dev));
+    return RESULT_OK;
 }
 
 int cmd_timer_start(int argc, char **argv)
