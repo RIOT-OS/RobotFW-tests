@@ -46,6 +46,7 @@ def stepClone()
 
 def stepReset(board, test)
 {
+    sh "python3 -m bph_pal --philip_reset"
     sh "make -C ${test} reset"
 }
 
