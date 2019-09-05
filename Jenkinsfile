@@ -34,8 +34,8 @@ def stepClone()
         def prnum = params.HIL_RIOT_PULL.toInteger()
         sh """
             cd RIOT
-            git fetch origin pull/${prnum}/head:pr-${prnum}
-            git checkout pr-${prnum}
+            git fetch origin +refs/pull/${prnum}/merge
+            git checkout FETCH_HEAD
         """
     }
     else {
