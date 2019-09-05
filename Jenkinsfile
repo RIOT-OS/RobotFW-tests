@@ -44,6 +44,11 @@ def stepClone()
     }
 }
 
+def stepReset(board, test)
+{
+    sh "make -C ${test} reset"
+}
+
 def stepFlash(board, test)
 {
     sh "make -C ${test} flash"
@@ -66,6 +71,7 @@ def parallelSteps (board, test) {
         catchError {
             node (board) {
                 stepClone()
+                stepReset(board, test)
                 stepFlash(board, test)
                 stepTests(board, test)
             }
