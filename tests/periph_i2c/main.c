@@ -27,23 +27,18 @@
 #include "periph/i2c.h"
 #include "shell.h"
 
+#include "sc_args.h"
+
 #ifndef I2C_ACK
 #define I2C_ACK         (0)
 #endif
 
-#define INVALID_ARGS    puts("Error: Invalid number of arguments");
-
 #define BUFSIZE         (128U)
-
-#define CONVERT_ERROR   (-32768)
-
-#define ARG_ERROR       (-1)
 
 /* i2c_buf is global to reduce stack memory consumtion */
 static uint8_t i2c_buf[BUFSIZE];
 
-static inline void _print_i2c_read(i2c_t dev, uint16_t *reg, uint8_t *buf,
-    int len)
+static inline void _print_i2c_read(i2c_t dev, uint16_t *reg, uint8_t *buf, int len)
 {
     printf("Success: i2c_%i read %i byte(s) ", dev, len);
     if (reg != NULL) {
@@ -57,38 +52,6 @@ static inline void _print_i2c_read(i2c_t dev, uint16_t *reg, uint8_t *buf,
         printf("0x%02x", buf[i]);
     }
     printf("]\n");
-}
-
-static inline int _get_num(const char *str)
-{
-    errno = 0;
-    char *temp;
-    long val = strtol(str, &temp, 0);
-
-    if (temp == str || *temp != '\0' ||
-        ((val == LONG_MIN || val == LONG_MAX) && errno == ERANGE)) {
-        val = CONVERT_ERROR;
-    }
-    return (int)val;
-}
-
-
-static int _check_param(int argc, char **argv, int c_min, int c_max, char *use)
-{
-    int dev;
-
-    if (argc - 1 < c_min || argc - 1 > c_max) {
-        printf("Usage: %s %s\n", argv[0], use);
-        INVALID_ARGS;
-        return ARG_ERROR;
-    }
-
-    dev = _get_num(argv[1]);
-    if (dev < 0 || dev >= (int)I2C_NUMOF) {
-        printf("Error: No device, only %d supported\n", (int)I2C_NUMOF);
-        return ARG_ERROR;
-    }
-    return dev;
 }
 
 static int _print_i2c_error(int res)
@@ -127,14 +90,16 @@ static int _print_i2c_error(int res)
 
 int cmd_i2c_acquire(int argc, char **argv)
 {
-    int res;
-    int dev;
 
-    dev = _check_param(argc, argv, 1, 1, "DEV");
-    if (dev == ARG_ERROR) {
+    int res = sc_args_check(argc, argv, 1, 1, "DEV");
+    if (res != ARGS_OK) {
         return 1;
     }
 
+    int dev = sc_arg2dev(argv[1], I2C_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
+    }
     printf("Command: i2c_acquire(%i)\n", dev);
     res = i2c_acquire(dev);
     if (res == I2C_ACK) {
@@ -146,11 +111,14 @@ int cmd_i2c_acquire(int argc, char **argv)
 
 int cmd_i2c_release(int argc, char **argv)
 {
-    int dev;
-
-    dev = _check_param(argc, argv, 1, 1, "DEV");
-    if (dev == ARG_ERROR) {
+    int res = sc_args_check(argc, argv, 1, 1, "DEV");
+    if (res != ARGS_OK) {
         return 1;
+    }
+
+    int dev = sc_arg2dev(argv[1], I2C_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
     }
 
     printf("Command: i2c_release(%i)\n", dev);
@@ -162,24 +130,29 @@ int cmd_i2c_release(int argc, char **argv)
 
 int cmd_i2c_read_reg(int argc, char **argv)
 {
-    int res;
-    uint16_t addr;
-    uint16_t reg;
-    uint8_t flags = 0;
-    uint8_t data;
-    int dev;
-
-    dev = _check_param(argc, argv, 4, 4, "DEV ADDR REG FLAG");
-    if (dev == ARG_ERROR) {
+    int res = sc_args_check(argc, argv, 4, 4, "DEV ADDR REG FLAG");
+    if (res != ARGS_OK) {
         return 1;
     }
 
-    addr = _get_num(argv[2]);
-    reg = _get_num(argv[3]);
-    flags = _get_num(argv[4]);
+    int dev = sc_arg2dev(argv[1], I2C_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
+    }
 
-    printf("Command: i2c_read_reg(%i, 0x%02x, 0x%02x, 0x%02x)\n", dev, addr,
-           reg, flags);
+    uint16_t addr = 0;
+    uint16_t reg = 0;
+    uint8_t flags = 0;
+
+    if (sc_arg2u16(argv[2], &addr) != ARGS_OK
+        || sc_arg2u16(argv[3], &reg) != ARGS_OK
+        || sc_arg2u8(argv[4], &flags) != ARGS_OK) {
+        return 1;
+    }
+
+    printf("Command: i2c_read_reg(%i, 0x%02x, 0x%02x, 0x%02x)\n",
+           dev, addr, reg, flags);
+    uint8_t data;
     res = i2c_read_reg(dev, addr, reg, &data, flags);
 
     if (res == I2C_ACK) {
@@ -191,30 +164,35 @@ int cmd_i2c_read_reg(int argc, char **argv)
 
 int cmd_i2c_read_regs(int argc, char **argv)
 {
-    int res;
-    uint16_t addr;
-    uint16_t reg;
-    uint8_t flags = 0;
-    int len;
-    int dev;
-
-    dev = _check_param(argc, argv, 5, 5, "DEV ADDR REG LEN FLAG");
-    if (dev == ARG_ERROR) {
+    int res = sc_args_check(argc, argv, 5, 5, "DEV ADDR REG LEN FLAG");
+    if (res != ARGS_OK) {
         return 1;
     }
 
-    addr = _get_num(argv[2]);
-    reg = _get_num(argv[3]);
-    len = _get_num(argv[4]);
-    flags = _get_num(argv[5]);
+    int dev = sc_arg2dev(argv[1], I2C_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
+    }
+
+    uint16_t addr = 0;
+    uint16_t reg = 0;
+    int len = 0;
+    uint8_t flags = 0;
+
+    if (sc_arg2u16(argv[2], &addr) != ARGS_OK
+        || sc_arg2u16(argv[3], &reg) != ARGS_OK
+        || sc_arg2int(argv[4], &len) != ARGS_OK
+        || sc_arg2u8(argv[5], &flags) != ARGS_OK) {
+        return 1;
+    }
 
     if (len < 1 || len > (int)BUFSIZE) {
         puts("Error: invalid LENGTH parameter given");
         return 1;
     }
     else {
-        printf("Command: i2c_read_regs(%i, 0x%02x, 0x%02x, %i, 0x%02x)\n", dev,
-            addr, reg, len, flags);
+        printf("Command: i2c_read_regs(%i, 0x%02x, 0x%02x, %i, 0x%02x)\n",
+               dev, addr, reg, len, flags);
         res = i2c_read_regs(dev, addr, reg, i2c_buf, len, flags);
     }
 
@@ -227,21 +205,26 @@ int cmd_i2c_read_regs(int argc, char **argv)
 
 int cmd_i2c_read_byte(int argc, char **argv)
 {
-    int res;
-    uint16_t addr;
-    uint8_t flags = 0;
-    uint8_t data;
-    int dev;
-
-    dev = _check_param(argc, argv, 3, 3, "DEV ADDR FLAG");
-    if (dev == ARG_ERROR) {
+    int res = sc_args_check(argc, argv, 3, 3, "DEV ADDR FLAG");
+    if (res != ARGS_OK) {
         return 1;
     }
 
-    addr = _get_num(argv[2]);
-    flags = _get_num(argv[3]);
+    int dev = sc_arg2dev(argv[1], I2C_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
+    }
+
+    uint16_t addr = 0;
+    uint8_t flags = 0;
+
+    if (sc_arg2u16(argv[2], &addr) != ARGS_OK
+        || sc_arg2u8(argv[3], &flags) != ARGS_OK) {
+        return 1;
+    }
 
     printf("Command: i2c_read_byte(%i, 0x%02x, 0x%02x)\n", dev, addr, flags);
+    uint8_t data;
     res = i2c_read_byte(dev, addr, &data, flags);
 
     if (res == I2C_ACK) {
@@ -253,20 +236,25 @@ int cmd_i2c_read_byte(int argc, char **argv)
 
 int cmd_i2c_read_bytes(int argc, char **argv)
 {
-    int res;
-    uint16_t addr;
-    uint8_t flags = 0;
-    int len;
-    int dev;
-
-    dev = _check_param(argc, argv, 4, 4, "DEV ADDR LENGTH FLAG");
-    if (dev == ARG_ERROR) {
+    int res = sc_args_check(argc, argv, 4, 4, "DEV ADDR LENGTH FLAG");
+    if (res != ARGS_OK) {
         return 1;
     }
 
-    addr = _get_num(argv[2]);
-    len = _get_num(argv[3]);
-    flags = _get_num(argv[4]);
+    int dev = sc_arg2dev(argv[1], I2C_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
+    }
+
+    uint16_t addr = 0;
+    int len = 0;
+    uint8_t flags = 0;
+
+    if (sc_arg2u16(argv[2], &addr) != ARGS_OK
+        || sc_arg2int(argv[3], &len) != ARGS_OK
+        || sc_arg2u8(argv[4], &flags) != ARGS_OK) {
+        return 1;
+    }
 
     if (len < 1 || len > (int)BUFSIZE) {
         puts("Error: invalid LENGTH parameter given");
@@ -287,23 +275,28 @@ int cmd_i2c_read_bytes(int argc, char **argv)
 
 int cmd_i2c_write_byte(int argc, char **argv)
 {
-    int res;
-    uint16_t addr;
-    uint8_t flags = 0;
-    uint8_t data;
-    int dev;
-
-    dev = _check_param(argc, argv, 4, 4, "DEV ADDR BYTE FLAG");
-    if (dev == ARG_ERROR) {
+    int res = sc_args_check(argc, argv, 4, 4, "DEV ADDR BYTE FLAG");
+    if (res != ARGS_OK) {
         return 1;
     }
 
-    addr = _get_num(argv[2]);
-    data = _get_num(argv[3]);
-    flags = _get_num(argv[4]);
+    int dev = sc_arg2dev(argv[1], I2C_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
+    }
 
-    printf("Command: i2c_write_byte(%i, 0x%02x, 0x%02x, [0x%02x", dev, addr,
-        flags, data);
+    uint16_t addr = 0;
+    uint8_t data = 0;
+    uint8_t flags = 0;
+
+    if (sc_arg2u16(argv[2], &addr) != ARGS_OK
+        || sc_arg2u8(argv[3], &data) != ARGS_OK
+        || sc_arg2u8(argv[4], &flags) != ARGS_OK) {
+        return 1;
+    }
+
+    printf("Command: i2c_write_byte(%i, 0x%02x, 0x%02x, [0x%02x",
+           dev, addr, flags, data);
     puts("])");
     res = i2c_write_byte(dev, addr, data, flags);
 
@@ -316,27 +309,33 @@ int cmd_i2c_write_byte(int argc, char **argv)
 
 int cmd_i2c_write_bytes(int argc, char **argv)
 {
-    int res;
-    uint16_t addr;
-    uint8_t flags = 0;
-    int len = argc - 4;
-    int dev;
-
-    dev = _check_param(argc, argv, 4, 3 + BUFSIZE,
-                       "DEV ADDR FLAG BYTE0 [BYTE1 [BYTE_n [...]]]");
-    if (dev == ARG_ERROR) {
+    int res = sc_args_check(argc, argv, 4, 3 + BUFSIZE,
+                            "DEV ADDR FLAG BYTE0 [BYTE1 [BYTE_n [...]]]");
+    if (res != ARGS_OK) {
         return 1;
     }
 
-    addr = _get_num(argv[2]);
-    flags = _get_num(argv[3]);
-    for (int i = 0; i < len; i++) {
-        i2c_buf[i] = _get_num(argv[i + 4]);
+    int dev = sc_arg2dev(argv[1], I2C_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
     }
 
-    printf("Command: i2c_write_bytes(%i, 0x%02x, 0x%02x, [", dev, addr,
-        flags);
+    uint16_t addr = 0;;
+    uint8_t flags = 0;
+
+    if (sc_arg2u16(argv[2], &addr) != ARGS_OK
+        || sc_arg2u8(argv[3], &flags) != ARGS_OK) {
+        return 1;
+    }
+    int len = argc - 4;
     for (int i = 0; i < len; i++) {
+        if (sc_arg2u8(argv[i + 4], &i2c_buf[i]) != ARGS_OK) {
+            return 1;
+        }
+    }
+
+    printf("Command: i2c_write_bytes(%i, 0x%02x, 0x%02x, [", dev, addr, flags);
+    for (int i = 0; i < (argc - 4); i++) {
         if (i != 0) {
             printf(", ");
         }
@@ -354,25 +353,30 @@ int cmd_i2c_write_bytes(int argc, char **argv)
 
 int cmd_i2c_write_reg(int argc, char **argv)
 {
-    int res;
-    uint16_t addr;
-    uint16_t reg;
-    uint8_t flags = 0;
-    uint8_t data;
-    int dev;
-
-    dev = _check_param(argc, argv, 5, 5, "DEV ADDR REG BYTE FLAG");
-    if (dev == ARG_ERROR) {
+    int res = sc_args_check(argc, argv, 5, 5, "DEV ADDR REG BYTE FLAG");
+    if (res != ARGS_OK) {
         return 1;
     }
 
-    addr = _get_num(argv[2]);
-    reg = _get_num(argv[3]);
-    data = _get_num(argv[4]);
-    flags = _get_num(argv[5]);
+    int dev = sc_arg2dev(argv[1], I2C_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
+    }
 
-    printf("Command: i2c_write_reg(%i, 0x%02x, 0x%02x, 0x%02x, [0x%02x", dev,
-        addr, reg, flags, data);
+    uint16_t addr = 0;
+    uint16_t reg = 0;
+    uint8_t data = 0;
+    uint8_t flags = 0;
+
+    if (sc_arg2u16(argv[2], &addr) != ARGS_OK
+        || sc_arg2u16(argv[3], &reg) != ARGS_OK
+        || sc_arg2u8(argv[4], &data) != ARGS_OK
+        || sc_arg2u8(argv[5], &flags) != ARGS_OK) {
+        return 1;
+    }
+
+    printf("Command: i2c_write_reg(%i, 0x%02x, 0x%02x, 0x%02x, [0x%02x",
+           dev, addr, reg, flags, data);
     puts("])");
     res = i2c_write_reg(dev, addr, reg, data, flags);
 
@@ -385,28 +389,34 @@ int cmd_i2c_write_reg(int argc, char **argv)
 
 int cmd_i2c_write_regs(int argc, char **argv)
 {
-    int res;
-    uint16_t addr;
-    uint16_t reg;
-    uint8_t flags = 0;
-    int len = argc - 5;
-    int dev;
-
-    dev = _check_param(argc, argv, 5, 4 + BUFSIZE,
-                       "DEV ADDR REG FLAG BYTE0 [BYTE1 ...]");
-    if (dev == ARG_ERROR) {
+    int res = sc_args_check(argc, argv, 5, 4 + BUFSIZE, "DEV ADDR REG FLAG BYTE0 [BYTE1 ...]");
+    if (res != ARGS_OK) {
         return 1;
     }
 
-    addr = _get_num(argv[2]);
-    reg = _get_num(argv[3]);
-    flags = _get_num(argv[4]);
-    for (int i = 0; i < len; i++) {
-        i2c_buf[i] = _get_num(argv[i + 5]);
+    int dev = sc_arg2dev(argv[1], I2C_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
     }
 
-    printf("Command: i2c_write_regs(%i, 0x%02x, 0x%02x, 0x%02x, [", dev,
-        addr, reg, flags);
+    uint16_t addr = 0;
+    uint16_t reg = 0;
+    uint8_t flags = 0;
+
+    if (sc_arg2u16(argv[2], &addr) != ARGS_OK
+        || sc_arg2u16(argv[3], &reg) != ARGS_OK
+        || sc_arg2u8(argv[4], &flags) != ARGS_OK) {
+        return 1;
+    }
+    int len = argc - 5;
+    for (int i = 0; i < len; i++) {
+        if (sc_arg2u8(argv[i + 5], &i2c_buf[i]) != ARGS_OK) {
+            return 1;
+        }
+    }
+
+    printf("Command: i2c_write_regs(%i, 0x%02x, 0x%02x, 0x%02x, [",
+           dev, addr, reg, flags);
     for (int i = 0; i < len; i++) {
         if (i != 0) {
             printf(", ");
@@ -428,6 +438,7 @@ int cmd_i2c_get_devs(int argc, char **argv)
 {
     (void)argv;
     (void)argc;
+
     printf("Command: return I2C_NUMOF\n");
     printf("Success: Amount of i2c devices: [%d]\n", I2C_NUMOF);
     return 0;
