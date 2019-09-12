@@ -23,7 +23,7 @@ DEVELHELP ?= 1
 CFLAGS += -DRIOT_APPLICATION=\"$(APPLICATION)\"
 
 # Add the common folder for all common test helpers
-EXTERNAL_MODULE_DIRS += $(TESTBASE)/tests/common
+EXTERNAL_MODULE_DIRS += $(TESTBASE)/utils/common
 
 # All tests here _should_ use the test helpers
 USEMODULE += test_helpers
