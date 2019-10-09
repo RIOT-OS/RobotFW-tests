@@ -5,8 +5,8 @@ def tests = []
 def triggers = []
 
 if ("${env.BRANCH_NAME}" == 'nightly') {
-    // build master with latest RIOT daily between 5 and 7 AM
-    triggers << parameterizedCron('H H(5-6) * * * % HIL_RIOT_VERSION=master')
+    // build master with latest RIOT daily at 1:00 AM
+    triggers << parameterizedCron('0 1 * * * % HIL_RIOT_VERSION=master')
 }
 
 properties([
@@ -52,15 +52,20 @@ def stepReset(board, test)
 
 def stepFlash(board, test)
 {
-    sh "make -C ${test} flash"
+    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+        sh "make -C ${test} flash"
+    }
 }
 
 def stepTests(board, test)
 {
     def test_name = test.replaceAll('/', '_')
     sh "make -C ${test} robot-clean || true"
-    sh "make -C ${test} robot-test  || true"
-    sh "make -C ${test} robot-html  || true"
+    catchError(buildResult: 'UNSTABLE', stageResult: 'SUCCESS') {
+        sh "make -C ${test} robot-test"
+    }
+    sh "make -C ${test} robot-html || true"
+
     archiveArtifacts artifacts: "build/robot/${board}/${test_name}/*.xml"
     archiveArtifacts artifacts: "build/robot/${board}/${test_name}/*.html"
     junit "build/robot/${board}/${test_name}/xunit.xml"
@@ -69,8 +74,8 @@ def stepTests(board, test)
 // function to return steps per board
 def parallelSteps (board, test) {
     return {
-        catchError {
-            node (board) {
+        node (board) {
+            catchError() {
                 stepClone()
                 stepReset(board, test)
                 stepFlash(board, test)
