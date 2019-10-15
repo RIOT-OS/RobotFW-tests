@@ -1,0 +1,10 @@
+*** Settings ***
+Library     String
+Library     Collections
+
+*** Keywords ***
+Length Should Be Greater
+    [Documentation]     Evaluate length of list to be greater than given number.
+    [Arguments]         ${list}     ${gtlen}
+    ${length}=          Get Length  ${list}
+    Should be True      ${length} > ${gtlen}

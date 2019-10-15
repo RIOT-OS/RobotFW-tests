@@ -18,3 +18,9 @@ PHILIP Log Stats
     [Documentation]     Write PHiLIP statistics to log and print on console
     ${stats}=           PHILIP Stats
     Log                 ${stats}
+
+PHILIP Trace GPIO ${pin}
+    [Documentation]           Enable tracing for a gpio debug pin
+    API Call Should Succeed   PHiLIP.Write Reg  gpio[${pin}].mode.init  0
+    API Call Should Succeed   PHiLIP.Write Reg  gpio[${pin}].mode.io_type  3
+    API Call Should Succeed   PHiLIP.Execute Changes

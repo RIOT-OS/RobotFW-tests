@@ -24,7 +24,7 @@ Xtimer Now Should Succeed
 Xtimer Values Should Increase
     [Documentation]             Verify xtimer values are monotonously increasing.
     API Call Should Succeed     Xtimer Now
-    ${t1}=                      API Get Last Result As Integer
+    ${t1}=                      API Result Data As Integer
     API Call Should Succeed     Xtimer Now
-    ${t2}=                      API Get Last Result As Integer
+    ${t2}=                      API Result Data As Integer
     Should Be True              ${t2} > ${t1}
