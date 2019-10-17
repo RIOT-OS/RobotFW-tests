@@ -42,6 +42,27 @@
 static mutex_t cb_mutex;
 static gpio_t debug_pins[TIMER_NUMOF];
 
+static inline void _debug_toogle(gpio_t pin)
+{
+    if (pin != GPIO_UNDEF) {
+        gpio_toggle(pin);
+    }
+}
+
+static inline void _debug_set(gpio_t pin)
+{
+    if (pin != GPIO_UNDEF) {
+        gpio_set(pin);
+    }
+}
+
+static inline void _debug_clear(gpio_t pin)
+{
+    if (pin != GPIO_UNDEF) {
+        gpio_clear(pin);
+    }
+}
+
 static inline int _get_num(const char *str, uint32_t* val)
 {
     errno = 0;
@@ -104,7 +125,7 @@ void cb_toggle(void *arg, int channel)
 {
     (void)channel;
     gpio_t pin = (gpio_t)(intptr_t)arg;
-    gpio_toggle(pin);
+    _debug_toogle(pin);
     mutex_unlock(&cb_mutex);
 }
 
@@ -112,7 +133,7 @@ void cb_high(void *arg, int channel)
 {
     (void)channel;
     gpio_t pin = (gpio_t)(intptr_t)arg;
-    gpio_set(pin);
+    _debug_set(pin);
     mutex_unlock(&cb_mutex);
 }
 
@@ -120,7 +141,7 @@ void cb_low(void *arg, int channel)
 {
     (void)channel;
     gpio_t pin = (gpio_t)(intptr_t)arg;
-    gpio_clear(pin);
+    _debug_clear(pin);
     mutex_unlock(&cb_mutex);
 }
 
@@ -181,11 +202,9 @@ int _timer_set(int argc, char **argv, bool absolute)
         PARSE_ERROR;
     }
 
-    gpio_t pin = debug_pins[dev];
-
     mutex_lock(&cb_mutex);
 
-    gpio_toggle(pin);
+    _debug_toogle(debug_pins[dev]);
     if (absolute) {
         res = timer_set_absolute(dev, chan, timeout);
     }
@@ -293,15 +312,13 @@ int cmd_timer_bench_read(int argc, char **argv)
         return RESULT_ERROR;
     }
 
-    gpio_t pin = debug_pins[dev];
-
-    gpio_toggle(pin);
+    _debug_toogle(debug_pins[dev]);
 
     for (uint32_t i = 0; i < repeat_cnt; i++) {
         timer_read(dev);
     }
 
-    gpio_toggle(pin);
+    _debug_toogle(debug_pins[dev]);
 
     return _print_cmd_result("cmd_timer_read_bench", true, 0, false);
 }
@@ -336,6 +353,11 @@ static const shell_command_t shell_commands[] = {
 int main(void)
 {
     puts("Start: Test for the timer API");
+
+    /* set all debug pins to undef */
+    for (unsigned i = 0; i < TIMER_NUMOF; ++i) {
+        debug_pins[i] = GPIO_UNDEF;
+    }
 
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
