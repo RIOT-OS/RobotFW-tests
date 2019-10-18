@@ -14,23 +14,15 @@ from riot_pal import DutShell
 class PeriphTimerIf(DutShell):
     """Interface to the a node with periph_timer_cli firmware."""
 
-
     FW_ID = 'periph_timer_cli'
     DEFAULT_TIMER_DEV = 0
     DEFAULT_CHAN = 0
-    DEFAULT_FREQ =  1000000
+    DEFAULT_FREQ = 1000000
     DEFAULT_TICKS = 1000000
     DEFAULT_REPEAT_CNT = 1000000
     DEFAULT_CB_NAME = "cb_toggle"
     DEFAULT_DBG_PORT = 0
     DEFAULT_DBG_PIN = 0
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def is_connected_to_board(self):
-        """Checks if board is connected."""
-        return self.i2c_get_id()["data"] == [self.FW_ID]
 
 # periph/timer API calls
     def timer_init(self, dev=DEFAULT_TIMER_DEV, freq=DEFAULT_FREQ, cbname=DEFAULT_CB_NAME):
@@ -94,11 +86,11 @@ class PeriphTimerIf(DutShell):
 
 
 def main():
-    """Test for PeriphTimer."""
+    """Test for PeriphTimerIf."""
 
     logging.getLogger().setLevel(logging.DEBUG)
     try:
-        ptimer = PeriphTimer()
+        ptimer = PeriphTimerIf()
         cmds = ptimer.get_command_list()
         logging.debug("======================================================")
         for cmd in cmds:
