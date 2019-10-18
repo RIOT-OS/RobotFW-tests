@@ -14,20 +14,12 @@ from riot_pal import DutShell
 class PeriphI2cIf(DutShell):
     """Interface to the a node with periph_i2c firmware."""
 
-
     FW_ID = 'periph_i2c'
     DEFAULT_DEV = 0
     DEFAULT_ADDR = 85
     DEFAULT_REG = 0
     DEFAULT_LEN = 10
     DEFAULT_DATA = [0, 1, 2]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def is_connected_to_board(self):
-        """Checks if board is connected."""
-        return self.i2c_get_id()["data"] == [self.FW_ID]
 
     def i2c_acquire(self, dev=DEFAULT_DEV):
         """Get access to the I2C bus."""
@@ -118,11 +110,11 @@ class PeriphI2cIf(DutShell):
 
 
 def main():
-    """Test for I2C."""
+    """Test for PeriphI2cIf."""
 
     logging.getLogger().setLevel(logging.DEBUG)
     try:
-        i2c = I2Cdevice()
+        i2c = PeriphI2cIf()
         cmds = i2c.get_command_list()
         logging.debug("======================================================")
         for cmd in cmds:
