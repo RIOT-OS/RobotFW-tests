@@ -28,6 +28,8 @@
 #include "periph/gpio.h"
 #include "mutex.h"
 
+#include "sc_args.h"
+
 #define ARG_ERROR       (-1)
 #define CONVERT_ERROR   (-32768)
 #define RESULT_OK       (0)
@@ -63,38 +65,6 @@ static inline void _debug_clear(gpio_t pin)
     }
 }
 
-static inline int _get_num(const char *str, uint32_t* val)
-{
-    errno = 0;
-    char *temp;
-    long v = strtol(str, &temp, 0);
-
-    if (temp == str || *temp != '\0' || (v < 0) ||
-        ((v == LONG_MIN || v == LONG_MAX) && errno == ERANGE)) {
-        return CONVERT_ERROR;
-    }
-
-    *val = (uint32_t)v;
-    return RESULT_OK;
-}
-
-static int _check_param(int argc, char **argv, uint32_t *dev, int c_min,
-                        int c_max, char *use)
-{
-    if (argc - 1 < c_min || argc - 1 > c_max) {
-        printf("Usage: %s %s\n", argv[0], use);
-        INVALID_ARGS;
-        return ARG_ERROR;
-    }
-
-    if ((_get_num(argv[1], dev) != RESULT_OK) || *dev >= TIMER_NUMOF) {
-        printf("Error: No device, only %u supported\n", TIMER_NUMOF);
-        return ARG_ERROR;
-    }
-
-    return RESULT_OK;
-}
-
 static int _print_cmd_result(const char *cmd, bool success, int ret,
                              bool print_ret)
 {
@@ -107,18 +77,6 @@ static int _print_cmd_result(const char *cmd, bool success, int ret,
     printf("\n");
 
     return success ? RESULT_OK : RESULT_ERROR;
-}
-
-static gpio_t _get_pin(const char *port_str, const char *pin_str)
-{
-    uint32_t port, pin = 0;
-
-    if (_get_num(port_str, &port) == CONVERT_ERROR ||
-        _get_num(pin_str, &pin) == CONVERT_ERROR) {
-        return GPIO_UNDEF;
-    }
-
-    return GPIO_PIN(port, pin);
 }
 
 void cb_toggle(void *arg, int channel)
@@ -149,35 +107,34 @@ void cb_low(void *arg, int channel)
 
 int cmd_timer_init(int argc, char **argv)
 {
-    uint32_t dev = 0;
-    uint32_t freq = 0;
-
-    if (_check_param(argc, argv, &dev, 3, 3, "dev freq cb") != RESULT_OK) {
-        return RESULT_ERROR;
+    if (sc_args_check(argc, argv, 3, 3, "DEV FREQ CALLBACK") != ARGS_OK) {
+        return ARGS_ERROR;
     }
 
-    if (_get_num(argv[2], &freq) !=  RESULT_OK) {
-        return -2;
+    int dev = sc_arg2dev(argv[1], TIMER_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
+    }
+
+    long freq = 0;
+    if (sc_arg2long(argv[2], &freq) != ARGS_OK) {
+        return ARGS_ERROR;
     }
 
     timer_cb_t cb = NULL;
-
     if (strncmp(CB_TOGGLE_STR, argv[3], strlen(argv[3])) == 0) {
         cb = cb_toggle;
     }
-
-    if (strncmp(CB_HIGH_STR, argv[3], strlen(argv[3])) == 0) {
+    else if (strncmp(CB_HIGH_STR, argv[3], strlen(argv[3])) == 0) {
         cb = cb_high;
     }
-
-    if (strncmp(CB_LOW_STR, argv[3], strlen(argv[3])) == 0) {
+    else if (strncmp(CB_LOW_STR, argv[3], strlen(argv[3])) == 0) {
         cb = cb_low;
     }
-
-    if(cb == NULL) {
-        printf("no valid callback name given. Valid values or %s, %s or %s\n",
+    else {
+        printf("no valid callback name given. Valid values are %s, %s or %s\n",
                CB_TOGGLE_STR, CB_HIGH_STR, CB_LOW_STR);
-        return -3;
+        return ARGS_ERROR;
     }
 
     int res = timer_init(dev, freq, cb, (void*)(intptr_t)debug_pins[dev]);
@@ -187,21 +144,26 @@ int cmd_timer_init(int argc, char **argv)
 
 int _timer_set(int argc, char **argv, bool absolute)
 {
-    int res;
-    uint32_t dev = 0;
-
-    if (_check_param(argc, argv, &dev, 3, 3,
-                     "dev channel ticks") != RESULT_OK) {
-        return -1;
+    if (sc_args_check(argc, argv, 3, 3, "DEV CHANNEL TICKS") != ARGS_OK) {
+        return ARGS_ERROR;
     }
 
-    uint32_t chan, timeout = 0;
-
-    if (_get_num(argv[2], &chan) != RESULT_OK ||
-        _get_num(argv[3], &timeout) != RESULT_OK) {
-        PARSE_ERROR;
+    int dev = sc_arg2dev(argv[1], TIMER_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
     }
 
+    int chan = 0;
+    if (sc_arg2int(argv[2], &chan) != ARGS_OK) {
+        return ARGS_ERROR;
+    }
+
+    unsigned int timeout = 0;
+    if (sc_arg2uint(argv[3], &timeout) != ARGS_OK) {
+        return ARGS_ERROR;
+    }
+
+    int res = 0;
     mutex_lock(&cb_mutex);
 
     _debug_toogle(debug_pins[dev]);
@@ -234,15 +196,18 @@ int cmd_timer_set_absolute(int argc, char **argv)
 
 int cmd_timer_clear(int argc, char **argv)
 {
-    uint32_t dev = 0;
-    uint32_t chan = 0;
-
-    if (_check_param(argc, argv, &dev, 2, 2, "dev channel") != RESULT_OK) {
-        return RESULT_ERROR;
+    if (sc_args_check(argc, argv, 3, 3, "DEV CHANNEL TICKS") != ARGS_OK) {
+        return ARGS_ERROR;
     }
 
-    if (_get_num(argv[2], &chan) != RESULT_OK) {
-        PARSE_ERROR;
+    int dev = sc_arg2dev(argv[1], TIMER_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
+    }
+
+    int chan = 0;
+    if (sc_arg2int(argv[2], &chan) != ARGS_OK) {
+        return ARGS_ERROR;
     }
 
     int res = timer_clear(dev, chan);
@@ -252,10 +217,13 @@ int cmd_timer_clear(int argc, char **argv)
 
 int cmd_timer_read(int argc, char **argv)
 {
-    uint32_t dev = 0;
+    if (sc_args_check(argc, argv, 3, 3, "DEV CHANNEL TICKS") != ARGS_OK) {
+        return ARGS_ERROR;
+    }
 
-    if (_check_param(argc, argv, &dev, 1, 1, "dev") != RESULT_OK) {
-        return RESULT_ERROR;
+    int dev = sc_arg2dev(argv[1], TIMER_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
     }
 
     printf("Success: timer_read(): [%u]\n", timer_read(dev));
@@ -264,10 +232,13 @@ int cmd_timer_read(int argc, char **argv)
 
 int cmd_timer_start(int argc, char **argv)
 {
-    uint32_t dev = 0;
+    if (sc_args_check(argc, argv, 3, 3, "DEV CHANNEL TICKS") != ARGS_OK) {
+        return ARGS_ERROR;
+    }
 
-    if (_check_param(argc, argv, &dev, 1, 1, "dev") != RESULT_OK) {
-        return RESULT_ERROR;
+    int dev = sc_arg2dev(argv[1], TIMER_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
     }
 
     timer_start(dev);
@@ -276,10 +247,13 @@ int cmd_timer_start(int argc, char **argv)
 
 int cmd_timer_stop(int argc, char **argv)
 {
-    uint32_t dev = 0;
+    if (sc_args_check(argc, argv, 3, 3, "DEV CHANNEL TICKS") != ARGS_OK) {
+        return ARGS_ERROR;
+    }
 
-    if (_check_param(argc, argv, &dev, 1, 1, "dev") != RESULT_OK) {
-        return RESULT_ERROR;
+    int dev = sc_arg2dev(argv[1], TIMER_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
     }
 
     timer_stop(dev);
@@ -290,14 +264,23 @@ int cmd_timer_stop(int argc, char **argv)
 
 int cmd_timer_debug_pin(int argc, char **argv)
 {
-    uint32_t dev = 0;
-
-    if (_check_param(argc, argv, &dev, 3, 3, "dev gpio_port gpio_pin") != RESULT_OK) {
-        return RESULT_ERROR;
+    if (sc_args_check(argc, argv, 3, 3, "DEV PORT PIN") != ARGS_OK) {
+        return ARGS_ERROR;
     }
+
+    int dev = sc_arg2dev(argv[1], TIMER_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
+    }
+
     /* parse and init debug pin */
-    gpio_t pin = _get_pin(argv[2], argv[3]);
-    debug_pins[dev] = pin;
+    uint32_t port, pin = 0;
+    if ((sc_arg2ulong(argv[2], &port) != ARGS_OK) ||
+        (sc_arg2ulong(argv[3], &pin) != ARGS_OK)) {
+        return _print_cmd_result("timer_debug_pin", false, 1, false);
+    }
+
+    debug_pins[dev] = GPIO_PIN(port, pin);
     gpio_init(pin, GPIO_OUT);
 
     return _print_cmd_result("timer_debug_pin", true, 0, false);
@@ -305,16 +288,23 @@ int cmd_timer_debug_pin(int argc, char **argv)
 
 int cmd_timer_bench_read(int argc, char **argv)
 {
-    uint32_t dev = 0;
-    uint32_t repeat_cnt = 0;
+    if (sc_args_check(argc, argv, 2, 2, "DEV REPEAT") != ARGS_OK) {
+        return ARGS_ERROR;
+    }
 
-    if (_check_param(argc, argv, &dev, 2, 2, "dev repeat_cnt") != RESULT_OK) {
-        return RESULT_ERROR;
+    int dev = sc_arg2dev(argv[1], TIMER_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
+    }
+
+    unsigned int repeat = 0;
+    if (sc_arg2uint(argv[2], &repeat) != ARGS_OK) {
+        return ARGS_ERROR;
     }
 
     _debug_toogle(debug_pins[dev]);
 
-    for (uint32_t i = 0; i < repeat_cnt; i++) {
+    for (unsigned int i = 0; i < repeat; i++) {
         timer_read(dev);
     }
 
