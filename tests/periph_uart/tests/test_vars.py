@@ -1,4 +1,3 @@
-import errno
 import random
 import string
 import serial
