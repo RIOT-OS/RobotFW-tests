@@ -14,7 +14,6 @@ from riot_pal import DutShell
 class XtimerIf(DutShell):
     """Interface to the a node with xtimer_cli firmware."""
 
-
     FW_ID = 'xtimer_cli'
 
     def __init__(self, *args, **kwargs):
@@ -45,7 +44,7 @@ def main():
 
     logging.getLogger().setLevel(logging.DEBUG)
     try:
-        xtimer = Xtimer()
+        xtimer = XtimerIf()
         cmds = xtimer.get_command_list()
         logging.debug("======================================================")
         for cmd in cmds:
