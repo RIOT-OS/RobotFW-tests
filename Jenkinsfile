@@ -52,15 +52,16 @@ def stepReset(board, test)
 
 def stepFlash(board, test)
 {
-    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE', recovery_action: '') {
+    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
         try {
+            echo "Trying the first flash"
             sh "make -C ${test} flash"
         } catch (err) {
+            echo "Trying the second flash"
             echo "Failed: ${err}"
             sh "make -C ${test} flash"
         }
     }
-
 }
 
 def stepTests(board, test)
