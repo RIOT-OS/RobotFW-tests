@@ -2,11 +2,12 @@
 Documentation       Evaluate Delays for numerous timer_set values.
 
 # reset application and check DUT has correct firmware, skip all tests on error
-Suite Setup         Run Keywords    PHiLIP.DUT Reset
+Suite Setup         Run Keywords    PHILIP Reset
+...                                 RIOT Reset
 ...                                 API Firmware Should Match
 # reset application before running any test
-Test Setup          Run Keywords    PHiLIP.DUT Reset
-...                                 PHILIP Reset
+Test Setup          Run Keywords    PHILIP Reset
+...                                 RIOT Reset
 ...                                 API Sync Shell
 # set test template for data driver tests
 Test Template       Measure Timer Set Delay

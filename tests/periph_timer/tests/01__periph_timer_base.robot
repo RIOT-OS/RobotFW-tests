@@ -2,10 +2,12 @@
 Documentation       Verify basic functionality of the Periph Timer API.
 
 # reset application and check DUT has correct firmware, skip all tests on error
-Suite Setup         Run Keywords    PHiLIP.DUT Reset
+Suite Setup         Run Keywords    PHILIP Reset
+...                                 RIOT Reset
 ...                                 API Firmware Should Match
 # reset application before running any test
-Test Setup          Run Keywords    PHiLIP.DUT Reset
+Test Setup          Run Keywords    PHILIP Reset
+...                                 RIOT Reset
 ...                                 API Sync Shell
 
 # import libs and keywords
