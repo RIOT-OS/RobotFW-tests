@@ -15,26 +15,25 @@ class PeriphUartIf(DutShell):
     """Interface to the node with periph_uart firmware."""
 
     FW_ID = 'periph_uart'
-    DEFAULT_DEV = 1
     DEFAULT_BAUD = 115200
     DEFAULT_PARITY = 'N'
     DEFAULT_DATA_BITS = 8
     DEFAULT_STOP_BITS = 1
 
-    def uart_init(self, dev=DEFAULT_DEV, baud=DEFAULT_BAUD):
+    def uart_init(self, dev, baud=DEFAULT_BAUD):
         """Init UART device"""
         ret = self.send_cmd("uart_init {} {}".format(dev, baud))
         # Clear buffer from init by sending and receiving
         self.send_cmd("uart_write {} {}".format(dev, "flush"))
         return ret
 
-    def uart_mode(self, data_bits=DEFAULT_DATA_BITS, parity=DEFAULT_PARITY,
-                  stop_bits=DEFAULT_STOP_BITS, dev=DEFAULT_DEV):
+    def uart_mode(self, dev, data_bits=DEFAULT_DATA_BITS, parity=DEFAULT_PARITY,
+                  stop_bits=DEFAULT_STOP_BITS):
         """Setup databits, parity and stopbits."""
         return self.send_cmd(
             "uart_mode {} {} {} {}".format(dev, data_bits, parity, stop_bits))
 
-    def uart_write(self, data, dev=DEFAULT_DEV):
+    def uart_write(self, dev, data):
         """Write data to UART device."""
         return self.send_cmd("uart_write {} {}".format(dev, data))
 
@@ -50,23 +49,3 @@ class PeriphUartIf(DutShell):
         cmds.append(self.uart_mode)
         cmds.append(self.uart_write)
         return cmds
-
-
-def main():
-    """Test for PeriphUartIf."""
-
-    logging.getLogger().setLevel(logging.DEBUG)
-    try:
-        uart = PeriphUartIf()
-        cmds = uart.get_command_list()
-        logging.debug("======================================================")
-        for cmd in cmds:
-            cmd()
-            logging.debug("--------------------------------------------------")
-        logging.debug("======================================================")
-    except Exception as exc:
-        logging.debug(exc)
-
-
-if __name__ == "__main__":
-    main()
