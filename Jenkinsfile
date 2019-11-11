@@ -44,6 +44,11 @@ def stepClone()
     }
 }
 
+def stepPrintEnv(board, test)
+{
+    sh 'dist/tools/ci/print_environment.sh'
+}
+
 def stepReset(board, test)
 {
     sh "python3 -m bph_pal --philip_reset"
@@ -77,6 +82,7 @@ def parallelSteps (board, test) {
         node (board) {
             catchError() {
                 stepClone()
+                stepPrintEnv(board, test)
                 stepReset(board, test)
                 stepFlash(board, test)
                 stepTests(board, test)
