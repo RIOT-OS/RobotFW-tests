@@ -19,55 +19,55 @@ Force Tags          periph  uart
 Even Parity with 8 Bits Should Succeed
     [Documentation]     Verify UART mode with 8 data bits and even parity.
     UART Mode Should Exist
-    PHILIP.Setup Uart           parity=${UART_PARITY_EVEN}
-    UART Mode Change Should Succeed         data_bits=8  parity="E"  stop_bits=1
-    API Call Should Succeed     Uart Write  ${SHORT_TEST_STRING}
-    API Result Data Should Contain  ${SHORT_TEST_STRING}
-    UART Mode Change Should Succeed         data_bits=8  parity="O"  stop_bits=1
-    API Call Should Timeout     Uart Write  ${SHORT_TEST_STRING}
+    PHILIP Setup UART                   parity=${UART_PARITY_EVEN}
+    UART Mode Change Should Succeed     data_bits=8  parity="E"  stop_bits=1
+    Uart Write Should Succeed           ${SHORT_TEST_STRING}
+    API Result Data Should Contain      ${SHORT_TEST_STRING}
+    UART Mode Change Should Succeed     data_bits=8  parity="O"  stop_bits=1
+    Uart Write Should Timeout           ${SHORT_TEST_STRING}
     PHILIP Log Stats
 
 Odd Parity with 8 Bits Should Succeed
     [Documentation]     Verify UART mode with 8 data bits and odd parity.
     UART Mode Should Exist
-    PHILIP.Setup Uart           parity=${UART_PARITY_ODD}
-    UART Mode Change Should Succeed         data_bits=8  parity="O"  stop_bits=1
-    API Call Should Succeed     Uart Write  ${SHORT_TEST_STRING}
-    API Result Data Should Contain  ${SHORT_TEST_STRING}
-    UART Mode Change Should Succeed         data_bits=8  parity="E"  stop_bits=1
-    API Call Should Timeout     Uart Write  ${SHORT_TEST_STRING}
+    PHILIP Setup UART                   parity=${UART_PARITY_ODD}
+    UART Mode Change Should Succeed     data_bits=8  parity="O"  stop_bits=1
+    Uart Write Should Succeed           ${SHORT_TEST_STRING}
+    API Result Data Should Contain      ${SHORT_TEST_STRING}
+    UART Mode Change Should Succeed     data_bits=8  parity="E"  stop_bits=1
+    Uart Write Should Timeout           ${SHORT_TEST_STRING}
     PHILIP Log Stats
 
 Even Parity with 7 Bits Should Succeed
     [Documentation]     Verify UART mode with 7 data bits and even parity.
     UART Mode Should Exist
-    PHILIP.Setup Uart           parity=${UART_PARITY_EVEN}   databits=${UART_DATA_BITS_7}
-    UART Mode Change Should Succeed         data_bits=7  parity="E"  stop_bits=1
-    API Call Should Succeed     Uart Write  ${SHORT_TEST_STRING}
-    API Result Data Should Contain  ${SHORT_TEST_STRING}
-    UART Mode Change Should Succeed         data_bits=7  parity="O"  stop_bits=1
-    API Call Should Timeout     Uart Write  ${SHORT_TEST_STRING}
+    PHILIP Setup UART                   parity=${UART_PARITY_EVEN}  databits=${UART_DATA_BITS_7}
+    UART Mode Change Should Succeed     data_bits=7  parity="E"  stop_bits=1
+    Uart Write Should Succeed           ${SHORT_TEST_STRING}
+    API Result Data Should Contain      ${SHORT_TEST_STRING}
+    UART Mode Change Should Succeed     data_bits=7  parity="O"  stop_bits=1
+    Uart Write Should Timeout           ${SHORT_TEST_STRING}
     PHILIP Log Stats
 
 Odd Parity with 7 Bits Should Succeed
     [Documentation]     Verify UART mode with 7 data bits and odd parity.
     UART Mode Should Exist
-    PHILIP.Setup Uart           parity=${UART_PARITY_ODD}   databits=${UART_DATA_BITS_7}
-    UART Mode Change Should Succeed         data_bits=7  parity="O"  stop_bits=1
-    API Call Should Succeed     Uart Write  ${SHORT_TEST_STRING}
-    API Result Data Should Contain  ${SHORT_TEST_STRING}
-    UART Mode Change Should Succeed         data_bits=7  parity="E"  stop_bits=1
-    API Call Should Timeout     Uart Write  ${SHORT_TEST_STRING}
+    PHILIP Setup UART                   parity=${UART_PARITY_ODD}  databits=${UART_DATA_BITS_7}
+    UART Mode Change Should Succeed     data_bits=7  parity="O"  stop_bits=1
+    Uart Write Should Succeed           ${SHORT_TEST_STRING}
+    API Result Data Should Contain      ${SHORT_TEST_STRING}
+    UART Mode Change Should Succeed     data_bits=7  parity="E"  stop_bits=1
+    Uart Write Should Timeout           ${SHORT_TEST_STRING}
     PHILIP Log Stats
 
 Write With Two Stop Bits Should Succeed
     [Documentation]     Verify UART mode with 2 stops bits.
     UART Mode Should Exist
-    PHILIP.Setup Uart           parity=${UART_PARITY_ODD}
-    UART Mode Change Should Succeed         data_bits=8  parity="N"  stop_bits=2
-    API Call Should Succeed     Uart Write  ${TEST_STRING_FOR_STOP_BITS}
-    API Result Data Should Contain  ${TEST_STRING_FOR_STOP_BITS}
-    UART Mode Change Should Succeed         data_bits=8  parity="N"  stop_bits=1
-    API Call Should Succeed     Uart Write  ${TEST_STRING_FOR_STOP_BITS}
+    PHILIP Setup UART                   parity=${UART_PARITY_ODD}
+    UART Mode Change Should Succeed     data_bits=8  parity="N"  stop_bits=2
+    Uart Write Should Succeed           ${TEST_STRING_FOR_STOP_BITS}
+    API Result Data Should Contain      ${TEST_STRING_FOR_STOP_BITS}
+    UART Mode Change Should Succeed     data_bits=8  parity="N"  stop_bits=1
+    Uart Write Should Succeed           ${TEST_STRING_FOR_STOP_BITS}
     API Result Data Should Not Contain  ${TEST_STRING_FOR_STOP_BITS}
     PHILIP Log Stats

@@ -8,22 +8,38 @@ Resource            riot_base.keywords.txt
 *** Keywords ***
 UART Flush
     [Documentation]             Remove garbage from UART buffer
-    UART write  flush
+    UART write  %{RF_UART_DEV}  flush
 
 UART Init and Flush Should Succeed
     [Documentation]             Init UART device and flush buffer
     [Arguments]                 @{args}  &{kwargs}
-    API Call Should Succeed     Uart Init   @{args}  &{kwargs}
+    API Call Should Succeed     Uart Init  %{RF_UART_DEV}  @{args}  &{kwargs}
     UART Flush
 
 UART Mode Change Should Succeed
     [Documentation]             Configure UART mode and flush
     [Arguments]                 @{args}  &{kwargs}
-    API Call Should Succeed     Uart Init
-    API Call Should Succeed     Uart Mode   @{args}  &{kwargs}
+    API Call Should Succeed     Uart Init  %{RF_UART_DEV}
+    API Call Should Succeed     Uart Mode  %{RF_UART_DEV}  @{args}  &{kwargs}
     UART Flush
+
+UART Write Should Succeed
+    [Documentation]             Write string to RF_UART_DEV should succeed
+    [Arguments]                 @{args}  &{kwargs}
+    API Call Should Succeed     Uart Write  %{RF_UART_DEV}  @{args}  &{kwargs}
+
+UART Write Should Timeout
+    [Documentation]             Write string to RF_UART_DEV should timeout
+    [Arguments]                 @{args}  &{kwargs}
+    API Call Should Timeout     Uart Write  %{RF_UART_DEV}  @{args}  &{kwargs}
 
 UART Mode Should Exist
     [Documentation]             Verify DUT supports UART mode configuration
-    ${status}   ${value}=       Run Keyword And Ignore Error   API Call Should Succeed   Uart Mode
+    ${status}   ${value}=       Run Keyword And Ignore Error   API Call Should Succeed   Uart Mode  %{RF_UART_DEV}
     Pass Execution If           '${status}'=='FAIL'   Feature is not supported
+
+PHILIP Setup UART
+    [Documentation]             Setup uart parameters on PHiLIP
+    [Arguments]                 @{args}  &{kwargs}
+    ${RESULT}=                  PHILIP.Setup Uart  @{args}  &{kwargs}
+    Log                         ${RESULT}
