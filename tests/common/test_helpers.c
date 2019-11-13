@@ -78,10 +78,10 @@ void print_data_int(int dev, int32_t data)
         printf("\"data\":[");
         parser_state[dev] |= JSON_STATE_DATA_STARTED;
     }
-    printf("%li", data);
+    printf("%" PRIi32, data);
 #else
     (void)dev;
-    printf("%li\n", data);
+    printf("%" PRIi32 "\n", data);
 #endif
 }
 
