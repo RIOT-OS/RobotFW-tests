@@ -18,6 +18,7 @@
  * @}
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -30,6 +31,8 @@
 #include "periph/uart.h"
 #include "stdio_uart.h"
 #include "xtimer.h"
+
+#include "sc_args.h"
 
 #define SHELL_BUFSIZE       (128U)
 #define UART_BUFSIZE        (128U)
@@ -61,20 +64,6 @@ static int data_bits_lut_len = sizeof(data_bits_lut)/sizeof(data_bits_lut[0]);
 static uart_stop_bits_t stop_bits_lut[] = { UART_STOP_BITS_1, UART_STOP_BITS_2 };
 static int stop_bits_lut_len = sizeof(stop_bits_lut)/sizeof(stop_bits_lut[0]);
 #endif
-
-static int parse_dev(char *arg)
-{
-    unsigned dev = atoi(arg);
-    if (dev >= UART_NUMOF) {
-        printf("Error: Invalid UART_DEV device specified (%u).\n", dev);
-        return -1;
-    }
-    else if (UART_DEV(dev) == STDIO_UART_DEV) {
-        printf("Error: The selected UART_DEV(%u) is used for the shell!\n", dev);
-        return -2;
-    }
-    return dev;
-}
 
 static void rx_cb(void *arg, uint8_t data)
 {
@@ -130,19 +119,20 @@ static void sleep_test(int num, uart_t uart)
 
 static int cmd_uart_init(int argc, char **argv)
 {
-    int dev, res;
-    uint32_t baud;
+    int res = sc_args_check(argc, argv, 2, 2, "DEV BAUD");
+    if (res != ARGS_OK) {
+        return 1;
+    }
 
-    if (argc < 3) {
-        printf("usage: %s <dev> <baudrate>\n", argv[0]);
+    int dev = sc_arg2dev(argv[1], UART_NUMOF);
+    if ((dev < 0) || (UART_DEV(dev) == STDIO_UART_DEV)){
+        return -ENODEV;
+    }
+
+    uint32_t baud = 0;
+    if (sc_arg2u32(argv[2], &baud) != ARGS_OK) {
         return 1;
     }
-    /* parse parameters */
-    dev = parse_dev(argv[1]);
-    if (dev < 0) {
-        return 1;
-    }
-    baud = strtol(argv[2], NULL, 0);
 
     /* initialize UART */
     res = uart_init(UART_DEV(dev), baud, rx_cb, (void *)dev);
@@ -166,22 +156,25 @@ static int cmd_uart_init(int argc, char **argv)
 #ifdef MODULE_PERIPH_UART_MODECFG
 static int cmd_uart_mode(int argc, char **argv)
 {
-    int dev, data_bits_arg, stop_bits_arg;
     uart_data_bits_t data_bits;
     uart_parity_t  parity;
     uart_stop_bits_t  stop_bits;
 
-    if (argc < 5) {
-        printf("usage: %s <dev> <data bits> <parity> <stop bits>\n", argv[0]);
+    int res = sc_args_check(argc, argv, 4, 4, "DEV DATA_BITS PARITY STOP_BITS");
+    if (res != ARGS_OK) {
         return 1;
     }
 
-    dev = parse_dev(argv[1]);
-    if (dev < 0) {
-        return 1;
+    int dev = sc_arg2dev(argv[1], UART_NUMOF);
+    if ((dev < 0) || (UART_DEV(dev) == STDIO_UART_DEV)){
+        return -ENODEV;
     }
 
-    data_bits_arg = atoi(argv[2]) - 5;
+    int data_bits_arg = 0;
+    if (sc_arg2int(argv[2], &data_bits_arg) != ARGS_OK) {
+        return 1;
+    }
+    data_bits_arg -= 5;
     if (data_bits_arg >= 0 && data_bits_arg < data_bits_lut_len) {
         data_bits = data_bits_lut[data_bits_arg];
     }
@@ -212,7 +205,12 @@ static int cmd_uart_mode(int argc, char **argv)
             return 1;
     }
 
-    stop_bits_arg = atoi(argv[4]) - 1;
+    int stop_bits_arg = 0;
+    if (sc_arg2int(argv[4], &stop_bits_arg) != ARGS_OK) {
+        return 1;
+    }
+    stop_bits_arg -= 1;
+
     if (stop_bits_arg >= 0 && stop_bits_arg < stop_bits_lut_len) {
         stop_bits = stop_bits_lut[stop_bits_arg];
     }
@@ -233,20 +231,18 @@ static int cmd_uart_mode(int argc, char **argv)
 
 static int cmd_uart_write(int argc, char **argv)
 {
-    int dev;
-    uint8_t endline = (uint8_t)'\n';
-
-    if (argc < 3) {
-        printf("usage: %s <dev> <data (string)>\n", argv[0]);
+    int res = sc_args_check(argc, argv, 2, 2, "DEV DATA");
+    if (res != ARGS_OK) {
         return 1;
     }
-    /* parse parameters */
-    dev = parse_dev(argv[1]);
-    if (dev < 0) {
-        return 1;
+
+    int dev = sc_arg2dev(argv[1], UART_NUMOF);
+    if ((dev < 0) || (UART_DEV(dev) == STDIO_UART_DEV)){
+        return -ENODEV;
     }
 
     printf("UART_DEV(%i) TX: %s\n", dev, argv[2]);
+    uint8_t endline = (uint8_t)'\n';
     uart_write(UART_DEV(dev), (uint8_t *)argv[2], strlen(argv[2]));
     uart_write(UART_DEV(dev), &endline, 1);
     return 0;
