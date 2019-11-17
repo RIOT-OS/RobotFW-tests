@@ -1,7 +1,6 @@
-RF_TESTS_COMMON_DIR := $(abspath $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST)))))
-ifneq (,$(filter test_helpers,$(USEMODULE)))
-  USEMODULE_INCLUDES += $(RF_TESTS_COMMON_DIR)/include
-endif
+# Use an immediate variable to evaluate `MAKEFILE_LIST` now
+USEMODULE_INCLUDES_common := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))/include
+USEMODULE_INCLUDES += $(USEMODULE_INCLUDES_common)
 
 ifeq ($(USE_JSON_SHELL_PARSER),1)
   CFLAGS += -DJSON_SHELL_PARSER
