@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "shell.h"
 #include "periph/timer.h"
@@ -275,8 +276,8 @@ int cmd_timer_debug_pin(int argc, char **argv)
 
     /* parse and init debug pin */
     uint32_t port, pin = 0;
-    if ((sc_arg2ulong(argv[2], &port) != ARGS_OK) ||
-        (sc_arg2ulong(argv[3], &pin) != ARGS_OK)) {
+    if ((sc_arg2u32(argv[2], &port) != ARGS_OK) ||
+        (sc_arg2u32(argv[3], &pin) != ARGS_OK)) {
         return _print_cmd_result("timer_debug_pin", false, 1, false);
     }
 
