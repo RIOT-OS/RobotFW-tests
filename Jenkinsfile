@@ -19,6 +19,7 @@ properties([
 
 def stepClone()
 {
+    deleteDir()
     checkout scm
     // update nightly branch to latest master
     if ("${env.BRANCH_NAME}" == 'nightly') {
