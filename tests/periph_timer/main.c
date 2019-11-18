@@ -197,7 +197,7 @@ int cmd_timer_set_absolute(int argc, char **argv)
 
 int cmd_timer_clear(int argc, char **argv)
 {
-    if (sc_args_check(argc, argv, 3, 3, "DEV CHANNEL TICKS") != ARGS_OK) {
+    if (sc_args_check(argc, argv, 2, 2, "DEV CHANNEL") != ARGS_OK) {
         return ARGS_ERROR;
     }
 
@@ -218,7 +218,7 @@ int cmd_timer_clear(int argc, char **argv)
 
 int cmd_timer_read(int argc, char **argv)
 {
-    if (sc_args_check(argc, argv, 3, 3, "DEV CHANNEL TICKS") != ARGS_OK) {
+    if (sc_args_check(argc, argv, 1, 1, "DEV") != ARGS_OK) {
         return ARGS_ERROR;
     }
 
@@ -233,7 +233,7 @@ int cmd_timer_read(int argc, char **argv)
 
 int cmd_timer_start(int argc, char **argv)
 {
-    if (sc_args_check(argc, argv, 3, 3, "DEV CHANNEL TICKS") != ARGS_OK) {
+    if (sc_args_check(argc, argv, 1, 1, "DEV") != ARGS_OK) {
         return ARGS_ERROR;
     }
 
@@ -248,7 +248,7 @@ int cmd_timer_start(int argc, char **argv)
 
 int cmd_timer_stop(int argc, char **argv)
 {
-    if (sc_args_check(argc, argv, 3, 3, "DEV CHANNEL TICKS") != ARGS_OK) {
+    if (sc_args_check(argc, argv, 1, 1, "DEV") != ARGS_OK) {
         return ARGS_ERROR;
     }
 
