@@ -282,7 +282,7 @@ int cmd_timer_debug_pin(int argc, char **argv)
     }
 
     debug_pins[dev] = GPIO_PIN(port, pin);
-    gpio_init(pin, GPIO_OUT);
+    gpio_init(debug_pins[dev], GPIO_OUT);
 
     return _print_cmd_result("timer_debug_pin", true, 0, false);
 }
