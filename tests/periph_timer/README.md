@@ -10,7 +10,7 @@ based HIL setup.
 Consult the 'help' shell command for available actions.
 
 Running this test with robot framework is done with this command:
-`BOARD=whatever PORT=/dev/ttyACM0 PHILIP_PORT=/dev/ttyACM1 DEBUG0_PORT=1 DEBUG0_PIN=3 make robot-test`
+`BOARD=whatever PORT=/dev/ttyACM0 PHILIP_PORT=/dev/ttyACM1 HIL_DUT_GPIO0_PORT=1 HIL_DUT_GPIO0_PIN=3 make robot-test`
 
-Where DEBUG0_PORT and DEBUG0_PIN are the RIOT specific pin identifiers of the
-DUT pin that is connected to PHiLIPs DEBUG0 pin.
+Where HIL_DUT_GPIO0_PORT and HIL_DUT_GPIO0_PIN are the RIOT specific pin
+identifiers of the DUT pin that is connected to PHiLIPs DEBUG0 pin.

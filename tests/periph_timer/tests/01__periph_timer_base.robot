@@ -20,19 +20,19 @@ Force Tags          periph_timer
 *** Test Cases ***
 Timer Init Should Succeed
     [Documentation]             Verify timer_init return code
-    API Call Should Succeed     Timer Init  freq=%{PERIPH_TIMER_HZ}
+    API Call Should Succeed     Timer Init  freq=%{HIL_PERIPH_TIMER_HZ}
 
 Timer Read Should Succeed
     [Documentation]             Verify timer_read returns a value
-    API Call Should Succeed     Timer Init  freq=%{PERIPH_TIMER_HZ}
+    API Call Should Succeed     Timer Init  freq=%{HIL_PERIPH_TIMER_HZ}
     API Call Should Succeed     Timer Read
 
 Timer Clear Should Succeed
     [Documentation]             Verify timer_clear return code
-    API Call Should Succeed     Timer Init  freq=%{PERIPH_TIMER_HZ}
+    API Call Should Succeed     Timer Init  freq=%{HIL_PERIPH_TIMER_HZ}
     API Call Should Succeed     Timer Clear
 
 Timer Set Should Succeed
     [Documentation]             Verify timer_set return code
-    API Call Should Succeed     Timer Init  freq=%{PERIPH_TIMER_HZ}
+    API Call Should Succeed     Timer Init  freq=%{HIL_PERIPH_TIMER_HZ}
     API Call Should Succeed     Timer Set  ticks=${10000}

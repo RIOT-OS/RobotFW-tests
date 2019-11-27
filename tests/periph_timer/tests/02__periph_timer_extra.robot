@@ -21,7 +21,7 @@ Force Tags          periph_timer
 *** Test Cases ***
 Timer Values Should Differ
     [Documentation]             Verify timer values are different on consecutive reads
-    API Call Should Succeed     Timer Init  freq=%{PERIPH_TIMER_HZ}
+    API Call Should Succeed     Timer Init  freq=%{HIL_PERIPH_TIMER_HZ}
     API Call Should Succeed     Timer Read
     ${t1}=                      API Result Data As Integer
     API Call Should Succeed     Timer Read
