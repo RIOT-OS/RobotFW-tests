@@ -1,5 +1,5 @@
 *** Settings ***
-Library             I2Cdevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${%{CMD_TIMEOUT}}  connect_wait=${%{CONNECT_WAIT}}
+Library             I2Cdevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${%{HIL_CMD_TIMEOUT}}  connect_wait=${%{HIL_CONNECT_WAIT}}
 
 Resource            api_shell.keywords.txt
 Resource            philip.keywords.txt
