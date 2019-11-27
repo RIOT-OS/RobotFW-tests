@@ -1,5 +1,5 @@
 *** Settings ***
-Library             UartDevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${%{CMD_TIMEOUT}}  connect_wait=${%{CONNECT_WAIT}}
+Library             UartDevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${%{HIL_CMD_TIMEOUT}}  connect_wait=${%{HIL_CONNECT_WAIT}}
 
 Resource            api_shell.keywords.txt
 Resource            philip.keywords.txt
@@ -8,34 +8,34 @@ Resource            riot_base.keywords.txt
 *** Keywords ***
 UART Flush
     [Documentation]             Remove garbage from UART buffer
-    UART write  %{RF_UART_DEV}  flush
+    UART write  %{HIL_UART_DEV}  flush
 
 UART Init and Flush Should Succeed
     [Documentation]             Init UART device and flush buffer
     [Arguments]                 @{args}  &{kwargs}
-    API Call Should Succeed     Uart Init  %{RF_UART_DEV}  @{args}  &{kwargs}
+    API Call Should Succeed     Uart Init  %{HIL_UART_DEV}  @{args}  &{kwargs}
     UART Flush
 
 UART Mode Change Should Succeed
     [Documentation]             Configure UART mode and flush
     [Arguments]                 @{args}  &{kwargs}
-    API Call Should Succeed     Uart Init  %{RF_UART_DEV}
-    API Call Should Succeed     Uart Mode  %{RF_UART_DEV}  @{args}  &{kwargs}
+    API Call Should Succeed     Uart Init  %{HIL_UART_DEV}
+    API Call Should Succeed     Uart Mode  %{HIL_UART_DEV}  @{args}  &{kwargs}
     UART Flush
 
 UART Write Should Succeed
     [Documentation]             Write string to RF_UART_DEV should succeed
     [Arguments]                 @{args}  &{kwargs}
-    API Call Should Succeed     Uart Write  %{RF_UART_DEV}  @{args}  &{kwargs}
+    API Call Should Succeed     Uart Write  %{HIL_UART_DEV}  @{args}  &{kwargs}
 
 UART Write Should Timeout
     [Documentation]             Write string to RF_UART_DEV should timeout
     [Arguments]                 @{args}  &{kwargs}
-    API Call Should Timeout     Uart Write  %{RF_UART_DEV}  @{args}  &{kwargs}
+    API Call Should Timeout     Uart Write  %{HIL_UART_DEV}  @{args}  &{kwargs}
 
 UART Mode Should Exist
     [Documentation]             Verify DUT supports UART mode configuration
-    ${status}   ${value}=       Run Keyword And Ignore Error   API Call Should Succeed   Uart Mode  %{RF_UART_DEV}
+    ${status}   ${value}=       Run Keyword And Ignore Error   API Call Should Succeed   Uart Mode  %{HIL_UART_DEV}
     Pass Execution If           '${status}'=='FAIL'   Feature is not supported
 
 PHILIP Setup UART
