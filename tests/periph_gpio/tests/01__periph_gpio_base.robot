@@ -15,6 +15,6 @@ Resource            periph_gpio.keywords.txt
 Force Tags          periph  gpio
 
 *** Test Cases ***  PHILIP_GPIO             DUT_PORT        DUT_PIN
-Verify GPIO_0       gpio[0].status.level    %{DEBUG0_PORT}  %{DEBUG0_PIN}
-Verify GPIO_1       gpio[1].status.level    %{DEBUG1_PORT}  %{DEBUG1_PIN}
-Verify GPIO_2       gpio[2].status.level    %{DEBUG2_PORT}  %{DEBUG2_PIN}
+Verify GPIO_0       gpio[0].status.level    %{HIL_DUT_GPIO0_PORT}  %{HIL_DUT_GPIO0_PIN}
+Verify GPIO_1       gpio[1].status.level    %{HIL_DUT_GPIO1_PORT}  %{HIL_DUT_GPIO1_PIN}
+Verify GPIO_2       gpio[2].status.level    %{HIL_DUT_GPIO2_PORT}  %{HIL_DUT_GPIO2_PIN}

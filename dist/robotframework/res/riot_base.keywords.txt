@@ -11,6 +11,5 @@ ${RIOTTOOLS}            %{RIOTBASE}/dist/tools
 *** Keywords ***
 RIOT Reset
     [Documentation]     Reset the test application
-    ${sleep_after}=     Get Environment Variable  RESET_WAIT  default=3
     Run Process         make reset  shell=True  cwd=%{APPDIR}
-    Sleep               ${sleep_after}
+    Sleep               %{HIL_RESET_WAIT}

@@ -4,17 +4,20 @@ APPLICATION ?= tests_$(notdir $(patsubst %/,%,$(CURDIR)))
 TESTBASE ?= $(CURDIR)/../..
 RIOTBASE ?= $(TESTBASE)/RIOT
 BUILD_DIR ?= $(TESTBASE)/build
+
+
+-include $(TESTBASE)/dist/etc/conf/$(BOARD).env
+include $(TESTBASE)/dist/etc/conf/default.env
+
 # Default timeout for serial connection to a board
-CMD_TIMEOUT ?= 1
-export CMD_TIMEOUT
+export HIL_CMD_TIMEOUT
+
 # Default wait time before connecting the serial
-CONNECT_WAIT ?= 0
-export CONNECT_WAIT
-# default periph/timer config
-PERIPH_TIMER_DEV ?= 0
-export PERIPH_TIMER_DEV
-PERIPH_TIMER_HZ ?= 1000000
-export PERIPH_TIMER_HZ
+export HIL_CONNECT_WAIT
+
+# Default wait time after reset in seconds
+export HIL_RESET_WAIT
+
 # suppress output
 QUIET ?= 1
 # DEVELHELP enabled by default for all tests, set 0 to disable
