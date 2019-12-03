@@ -18,6 +18,8 @@ int sc_arg2ulong(const char *arg, unsigned long *val);
 
 int sc_arg2u32(const char *arg, uint32_t *val);
 
+int sc_arg2s32(const char *arg, int32_t *val);
+
 int sc_arg2u16(const char *arg, uint16_t *val);
 
 int sc_arg2u8(const char *arg, uint8_t *val);
