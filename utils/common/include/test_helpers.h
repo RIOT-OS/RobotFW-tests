@@ -57,8 +57,8 @@
  * The proper message to send when things succeed or fail.
  * @{
  */
-#define TEST_RESULT_SUCCESS "SUCCESS"
-#define TEST_RESULT_ERROR   "ERROR"
+#define TEST_RESULT_SUCCESS "Success"
+#define TEST_RESULT_ERROR   "Error"
 /** @} */
 
 /**

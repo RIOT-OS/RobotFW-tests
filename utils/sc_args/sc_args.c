@@ -95,6 +95,17 @@ int sc_arg2u32(const char *arg, uint32_t *val)
     }
     return res;
 }
+
+int sc_arg2s32(const char *arg, int32_t *val)
+{
+    unsigned long lval;
+    int res = sc_arg2ulong(arg, &lval);
+    if (res == ARGS_OK) {
+        *val = (int32_t)lval;
+    }
+    return res;
+}
+
 int sc_arg2u16(const char *arg, uint16_t *val)
 {
     unsigned long lval;
@@ -104,6 +115,7 @@ int sc_arg2u16(const char *arg, uint16_t *val)
     }
     return res;
 }
+
 int sc_arg2u8(const char *arg, uint8_t *val)
 {
     unsigned long lval;

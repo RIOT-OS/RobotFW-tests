@@ -1,0 +1,26 @@
+*** Settings ***
+Library             SPIdevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${%{HIL_CMD_TIMEOUT}}  connect_wait=${%{HIL_CONNECT_WAIT}}  parser=json
+
+Resource            api_shell.keywords.txt
+Resource            philip.keywords.txt
+
+*** Keywords ***
+SPI Init Should Succeed
+    [Documentation]             Fully initialized the SPI
+    API Call Should Succeed     Spi init        %{HIL_SPI_DEV}
+    API Call Should Succeed     Spi init pins   %{HIL_SPI_DEV}
+    API Call Should Succeed     Spi init cs     %{HIL_SPI_DEV}  %{HIL_DUT_NSS_PORT}  %{HIL_DUT_NSS_PIN}
+
+SPI Acquire Should Succeed
+    [Documentation]             Acquire SPI with default parameters
+    [Arguments]                 @{args}  &{kwargs}
+    API Call Should Succeed     Spi acquire     %{HIL_SPI_DEV}  %{HIL_DUT_NSS_PORT}  %{HIL_DUT_NSS_PIN}  @{args}  &{kwargs}
+
+SPI Release Should Succeed
+    [Documentation]             Release SPI with default parameters
+    API Call Should Succeed     Spi release     %{HIL_SPI_DEV}
+
+SPI Transfer Bytes Should Succeed
+    [Arguments]                 @{args}  &{kwargs}
+    [Documentation]             Transfer SPI bytes with default parameters should succeed
+    API Call Should Succeed     Spi transfer bytes  %{HIL_SPI_DEV}  %{HIL_DUT_NSS_PORT}  %{HIL_DUT_NSS_PIN}  @{args}  &{kwargs}
