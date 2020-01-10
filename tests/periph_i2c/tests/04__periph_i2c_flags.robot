@@ -30,15 +30,15 @@ Repeated Start Read Bytes 0 Should Succeed
     [Documentation]                         Verify DUT does not lockup on repeated start read
     PHiLIP.write reg                        user_reg  0
     API Call Should Succeed                 I2C Read Bytes  leng=2  flag=${I2C_FLAG_NOSTOP}
-    API Call Should Error                   I2C Read Bytes  leng=2
-    API Call Should Succeed                 I2C Read Bytes  leng=2  flag=${I2C_FLAG_NOSTART}
+    API Call Should Succeed                 I2C Read Bytes  leng=2
+    API Call Should Succeed                 I2C Read Bytes  leng=2
 
 Repeated Start Read Bytes 0xFF Should Succeed
     [Documentation]                         Verify DUT does not lockup on repeated start read
     PHiLIP.write reg                        user_reg  255
     API Call Should Succeed                 I2C Read Bytes  leng=2  flag=${I2C_FLAG_NOSTOP}
-    API Call Should Error                   I2C Read Bytes  leng=2
-    API Call Should Succeed                 I2C Read Bytes  leng=2  flag=${I2C_FLAG_NOSTART}
+    API Call Should Succeed                 I2C Read Bytes  leng=2
+    API Call Should Succeed                 I2C Read Bytes  leng=2
 
 Read Bytes By Frame Should Succeed
     [Documentation]                         Read bytes frame by frame
