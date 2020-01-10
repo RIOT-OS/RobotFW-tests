@@ -51,9 +51,10 @@ be used.
 
 The (HIL) tests, i.e., the RF test scripts, utilise and integrate with the RIOT
 build system. For instance, it uses existing `make` targets like `flash` and
-environment variables such as `BOARD` and `PORT`. Further, a new target is
+environment variables such as `BOARD` and `PORT`. Further, new targets are
 introduced namely `robot-test` to specifically trigger RF based HIL testing
-without interfering with the existing `test` target in RIOT.
+without interfering with the existing `test` target in RIOT and `robot-clean`
+to clean the build folder and hence, enable the tests to be rerun. 
 
 [draft]: https://github.com/RIOT-OS/RIOT/pull/10624
 [RobotFramework]: https://robotframework.org
