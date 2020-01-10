@@ -369,7 +369,7 @@ int cmd_get_metadata(int argc, char **argv)
 
 
 #ifdef JSON_SHELL_PARSER
-/* Needs a foward declaration since we use shell_commands */
+/* Needs a forward declaration since we use shell_commands */
 int cmd_help(int argc, char **argv);
 #endif
 
