@@ -30,18 +30,17 @@ def stepClone()
         // checkout latest RIOT master
         sh 'git submodule update --init --remote --rebase'
     }
-    else if ("${params.HIL_RIOT_VERSION}" == 'pull' && "${params.HIL_RIOT_PULL}" != '0') {
-        // checkout specified PR number
-        def prnum = params.HIL_RIOT_PULL.toInteger()
-        sh """
-            cd RIOT
-            git fetch origin +refs/pull/${prnum}/merge
-            git checkout FETCH_HEAD
-        """
-    }
     else {
-        // default to submodule commit
         sh 'git submodule update --init'
+        if ("${params.HIL_RIOT_VERSION}" == 'pull' && "${params.HIL_RIOT_PULL}" != '0') {
+            // checkout specified PR number
+            def prnum = params.HIL_RIOT_PULL.toInteger()
+            sh """
+                cd RIOT
+                git fetch origin +refs/pull/${prnum}/merge
+                git checkout FETCH_HEAD
+            """
+        }
     }
 }
 
