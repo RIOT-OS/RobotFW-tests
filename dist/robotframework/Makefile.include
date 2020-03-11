@@ -25,7 +25,7 @@ $(RFOUTPATH)/output.xml: $(ROBOT_FILES)
 robot-test: $(RFOUTPATH)/output.xml
 
 robot-html:  $(RFOUTPATH)/output.xml
-	python3 -m robot.rebot -d $(RFOUTPATH) $<
+	python3 -m robot.rebot --noncritical skip -d $(RFOUTPATH) $<
 
 robot-clean:
 	@rm -f $(RFOUTPATH)/*.xml
