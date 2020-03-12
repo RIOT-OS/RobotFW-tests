@@ -12,9 +12,11 @@ Verify GPIO Pin Is Connected
     [Documentation]             Verify DUT pin is connected to PHiLIP pin with toggle.
     [Arguments]                 ${phil_gpio}       ${dut_port}   ${dut_pin}
     API Call Should Succeed     GPIO Set           ${dut_port}   ${dut_pin}
+    Sleep                       ${hw_update_time}
     API Call Should Succeed     PHiLIP.Read Reg    ${phil_gpio}
     Should Be Equal             ${RESULT['data']}  ${1}
     API Call Should Succeed     GPIO Clear         ${dut_port}   ${dut_pin}
+    Sleep                       ${hw_update_time}
     API Call Should Succeed     PHiLIP.Read Reg    ${phil_gpio}
     Should Be Equal             ${RESULT['data']}  ${0}
 
