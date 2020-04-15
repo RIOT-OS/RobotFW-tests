@@ -6,7 +6,7 @@ RFOUTPATH ?= $(BUILD_DIR)/robot/$(BOARD)/$(APPLICATION)/
 ROBOT_FILES ?= $(sort $(wildcard tests/*.robot))
 
 $(RFOUTPATH)/output.xml: $(ROBOT_FILES)
-	python3 -m robot.run \
+	python3 -m robot.run --noncritical skip \
 				--name "$(APPLICATION)" \
 				--noncritical warn-if-failed \
 				--settag "APP_$(APPLICATION)" \
@@ -25,7 +25,7 @@ $(RFOUTPATH)/output.xml: $(ROBOT_FILES)
 robot-test: $(RFOUTPATH)/output.xml
 
 robot-html:  $(RFOUTPATH)/output.xml
-	python3 -m robot.rebot -d $(RFOUTPATH) $<
+	python3 -m robot.rebot --noncritical skip -d $(RFOUTPATH) $<
 
 robot-clean:
 	@rm -f $(RFOUTPATH)/*.xml

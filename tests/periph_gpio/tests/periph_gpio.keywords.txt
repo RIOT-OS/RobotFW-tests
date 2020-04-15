@@ -4,13 +4,47 @@ Library             GPIOdevice  port=%{PORT}  baudrate=%{BAUD}  timeout=${%{HIL_
 Resource            api_shell.keywords.txt
 Resource            philip.keywords.txt
 
+*** Variables ***
+${hw_update_time}   0.1
+
 *** Keywords ***
 Verify GPIO Pin Is Connected
     [Documentation]             Verify DUT pin is connected to PHiLIP pin with toggle.
     [Arguments]                 ${phil_gpio}       ${dut_port}   ${dut_pin}
     API Call Should Succeed     GPIO Set           ${dut_port}   ${dut_pin}
+    Sleep                       ${hw_update_time}
     API Call Should Succeed     PHiLIP.Read Reg    ${phil_gpio}
     Should Be Equal             ${RESULT['data']}  ${1}
     API Call Should Succeed     GPIO Clear         ${dut_port}   ${dut_pin}
+    Sleep                       ${hw_update_time}
     API Call Should Succeed     PHiLIP.Read Reg    ${phil_gpio}
     Should Be Equal             ${RESULT['data']}  ${0}
+
+
+Verify Periph Pin Is Connected
+    [Arguments]                 ${phil_periph}      ${phil_gpio}    ${dut_port}     ${dut_pin}
+    Run Keyword Unless          '${dut_port}' == ''  Verify Periph Pin Is Connected Continue
+    ...                             ${phil_periph}      ${phil_gpio}    ${dut_port}     ${dut_pin}
+    Run Keyword If              '${dut_port}' == ''  Verify Periph Pin Is Connected Fail
+
+
+Verify Periph Pin Is Connected Continue
+    [Documentation]             Verify Periph Pin connected to PHiLIP with toggle.
+    [Arguments]                 ${phil_periph}      ${phil_gpio}    ${dut_port}     ${dut_pin}
+    API Call Should Succeed     PHiLIP.Write Reg    ${phil_periph}.mode.disable         1
+    API Call Should Succeed     PHiLIP.Write Reg    ${phil_periph}.mode.init            0
+    API Call Should Succeed     PHiLIP.Execute Changes
+    API Call Should Succeed     PHiLIP.Write Reg    ${phil_periph}.${phil_gpio}.pull    1
+    API Call Should Succeed     PHiLIP.Write Reg    ${phil_periph}.mode.init            0
+    API Call Should Succeed     PHiLIP.Execute Changes
+    API Call Should Succeed     GPIO Set           ${dut_port}   ${dut_pin}
+    Sleep                       ${hw_update_time}
+    API Call Should Succeed     PHiLIP.Read Reg    ${phil_periph}.${phil_gpio}.level
+    Should Be Equal             ${RESULT['data']}  ${1}
+    API Call Should Succeed     GPIO Clear         ${dut_port}   ${dut_pin}
+    Sleep                       ${hw_update_time}
+    API Call Should Succeed     PHiLIP.Read Reg    ${phil_periph}.${phil_gpio}.level
+    Should Be Equal             ${RESULT['data']}  ${0}
+
+Verify Periph Pin Is Connected Fail
+    Fail  This Periph is not supported here  skip
