@@ -28,10 +28,10 @@ def stepClone()
     }
     if ("${params.HIL_RIOT_VERSION}" == 'master') {
         // checkout latest RIOT master
-        sh 'git submodule update --init --remote --rebase'
+        sh 'git submodule update --init --remote --rebase --depth 1'
     }
     else {
-        sh 'git submodule update --init'
+        sh 'git submodule update --init --depth 1'
         if ("${params.HIL_RIOT_VERSION}" == 'pull' && "${params.HIL_RIOT_PULL}" != '0') {
             // checkout specified PR number
             def prnum = params.HIL_RIOT_PULL.toInteger()
