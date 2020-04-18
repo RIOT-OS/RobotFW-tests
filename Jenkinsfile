@@ -26,6 +26,17 @@ def stepClone()
         // update nightly branch to master
         sh 'git pull --rebase origin master'
     }
+    if ("${env.BRANCH_NAME}" == 'nightly') {
+        // update nightly branch to latest master and push
+        withCredentials([usernamePassword(credentialsId: 'da54a500-472f-4005-9399-a0ab5ce4da7e', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+            sh("""
+                git config --global credential.username ${GIT_USERNAME}
+                git config --global credential.helper "!echo password=${GIT_PASSWORD}; echo"
+                git pull --rebase origin master
+                git push origin HEAD:nightly
+            """)
+        }
+    }
     if ("${params.HIL_RIOT_VERSION}" == 'master') {
         // checkout latest RIOT master
         sh 'git submodule update --init --remote --rebase --depth 1'
@@ -81,7 +92,7 @@ def parallelSteps (board, test) {
     return {
         node (board) {
             catchError() {
-                stepClone()
+                unstash name: 'sources'
                 stepPrintEnv(board, test)
                 stepReset(board, test)
                 stepFlash(board, test)
@@ -94,18 +105,8 @@ def parallelSteps (board, test) {
 // detect connected boards and available tests
 stage ("setup") {
     node ("master") {
-        checkout scm
-        if ("${env.BRANCH_NAME}" == 'nightly') {
-            // update nightly branch to latest master and push
-            withCredentials([usernamePassword(credentialsId: 'da54a500-472f-4005-9399-a0ab5ce4da7e', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                sh("""
-                    git config --global credential.username ${GIT_USERNAME}
-                    git config --global credential.helper "!echo password=${GIT_PASSWORD}; echo"
-                    git pull --rebase origin master
-                    git push origin HEAD:nightly
-                """)
-            }
-        }
+        stepClone()
+        stash name: 'sources'
         // discover test applications
         tests = sh(returnStdout: true,
                    script:  """
