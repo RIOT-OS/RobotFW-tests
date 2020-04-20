@@ -19,6 +19,7 @@ $(RFOUTPATH)/output.xml: $(ROBOT_FILES)
 				-o $@ \
 				-r NONE \
 				--xunit $(RFOUTPATH)/xunit.xml \
+				--xunitskipnoncritical \
 				$^
 
 # RF make targets
