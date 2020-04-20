@@ -1,6 +1,7 @@
 def nodes = nodesByLabel('HIL')
 def boards = []
 def tests = []
+def nodeMap = [:]
 
 def triggers = []
 
@@ -60,6 +61,12 @@ def stepPrintEnv(board, test)
     sh 'dist/tools/ci/print_environment.sh'
 }
 
+def stepPrepareWorkingDir()
+{
+    deleteDir()
+    unstash name: 'sources'
+}
+
 def stepReset(board, test)
 {
     sh "python3 -m bph_pal --philip_reset"
@@ -92,7 +99,6 @@ def parallelSteps (board, test) {
     return {
         node (board) {
             catchError() {
-                unstash name: 'sources'
                 stepPrintEnv(board, test)
                 stepReset(board, test)
                 stepFlash(board, test)
@@ -125,6 +131,19 @@ stage ("setup") {
         boards.unique()
         echo "use BOARDS: " + boards.join(",")
     }
+}
+
+for (int i=0; i<nodes.size(); ++i) {
+     def nodeName = nodes[i];
+     nodeMap[nodeName] = {
+        node {
+           stepPrepareWorkingDir()
+        }
+    }
+}
+
+stage ("worker setup") {
+    parallel (nodeMap)
 }
 
 // create a stage per test with one step per board
