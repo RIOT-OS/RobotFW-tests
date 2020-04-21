@@ -1,6 +1,7 @@
 def nodes = nodesByLabel('HIL')
 def boards = []
 def tests = []
+def nodeMap = [:]
 
 def triggers = []
 
@@ -26,12 +27,23 @@ def stepClone()
         // update nightly branch to master
         sh 'git pull --rebase origin master'
     }
+    if ("${env.BRANCH_NAME}" == 'nightly') {
+        // update nightly branch to latest master and push
+        withCredentials([usernamePassword(credentialsId: 'da54a500-472f-4005-9399-a0ab5ce4da7e', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+            sh("""
+                git config --global credential.username ${GIT_USERNAME}
+                git config --global credential.helper "!echo password=${GIT_PASSWORD}; echo"
+                git pull --rebase origin master
+                git push origin HEAD:nightly
+            """)
+        }
+    }
     if ("${params.HIL_RIOT_VERSION}" == 'master') {
         // checkout latest RIOT master
-        sh 'git submodule update --init --remote --rebase'
+        sh 'git submodule update --init --remote --rebase --depth 1'
     }
     else {
-        sh 'git submodule update --init'
+        sh 'git submodule update --init --depth 1'
         if ("${params.HIL_RIOT_VERSION}" == 'pull' && "${params.HIL_RIOT_PULL}" != '0') {
             // checkout specified PR number
             def prnum = params.HIL_RIOT_PULL.toInteger()
@@ -47,6 +59,12 @@ def stepClone()
 def stepPrintEnv(board, test)
 {
     sh 'dist/tools/ci/print_environment.sh'
+}
+
+def stepPrepareWorkingDir()
+{
+    deleteDir()
+    unstash name: 'sources'
 }
 
 def stepReset(board, test)
@@ -81,7 +99,6 @@ def parallelSteps (board, test) {
     return {
         node (board) {
             catchError() {
-                stepClone()
                 stepPrintEnv(board, test)
                 stepReset(board, test)
                 stepFlash(board, test)
@@ -94,18 +111,8 @@ def parallelSteps (board, test) {
 // detect connected boards and available tests
 stage ("setup") {
     node ("master") {
-        checkout scm
-        if ("${env.BRANCH_NAME}" == 'nightly') {
-            // update nightly branch to latest master and push
-            withCredentials([usernamePassword(credentialsId: 'da54a500-472f-4005-9399-a0ab5ce4da7e', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                sh("""
-                    git config --global credential.username ${GIT_USERNAME}
-                    git config --global credential.helper "!echo password=${GIT_PASSWORD}; echo"
-                    git pull --rebase origin master
-                    git push origin HEAD:nightly
-                """)
-            }
-        }
+        stepClone()
+        stash name: 'sources'
         // discover test applications
         tests = sh(returnStdout: true,
                    script:  """
@@ -124,6 +131,19 @@ stage ("setup") {
         boards.unique()
         echo "use BOARDS: " + boards.join(",")
     }
+}
+
+for (int i=0; i<nodes.size(); ++i) {
+     def nodeName = nodes[i];
+     nodeMap[nodeName] = {
+        node {
+           stepPrepareWorkingDir()
+        }
+    }
+}
+
+stage ("worker setup") {
+    parallel (nodeMap)
 }
 
 // create a stage per test with one step per board
