@@ -4,7 +4,7 @@
 # General Public License v2.1. See the file LICENSE in the top level
 # directory for more details.
 """@package PyToAPI
-This module handles parsing of information from RIOT periph_i2c test.
+This module handles parsing of information from RIOT periph_spi test.
 """
 import logging
 
@@ -40,7 +40,7 @@ class PeriphSpiIf(DutShell):
 
     def spi_transfer_byte(self, dev, port, pin, cont, out):
         """Transfer one byte on the given SPI bus"""
-        return self.send_cmd('spi_transfer_byte {} {} {} {}'.format(dev, port, pin, cont, out))
+        return self.send_cmd('spi_transfer_byte {} {} {} {} {}'.format(dev, port, pin, cont, out))
 
     def spi_transfer_bytes(self, dev, port, pin, cont, in_len, out=None):
         """Transfer a number bytes using the given SPI bus"""
@@ -60,8 +60,8 @@ class PeriphSpiIf(DutShell):
         else:
             return self.send_cmd('spi_transfer_regs {} {} {} {} {}'.format(dev, port, pin, reg, in_len))
 
-    def i2c_get_devs(self):
-        """Gets amount of supported i2c devices."""
+    def spi_get_devs(self):
+        """Gets amount of supported spi devices."""
         return self.send_cmd('spi_get_devs')
 
     def get_metadata(self):

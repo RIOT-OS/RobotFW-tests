@@ -29,8 +29,7 @@ Acquire after Release Should Succeed
     SPI Release Should Succeed
     SPI Acquire Should Succeed  0  100k
 
-Read Bytes Should Match
-    [Documentation]             Match bytes from board.
+Double Acquire Should Timeout
+    [Documentation]             Verify that acquiring a locked SPI bus blocks.
     SPI Acquire Should Succeed  0  100k
-    SPI Transfer Bytes Should Succeed  cont=0  in_len=5
-    Should Be Equal             ${RESULT['data']}  ${VAL_1}
+    SPI Acquire Should Timeout  0  100k

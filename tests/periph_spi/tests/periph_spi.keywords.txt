@@ -16,6 +16,11 @@ SPI Acquire Should Succeed
     [Arguments]                 @{args}  &{kwargs}
     API Call Should Succeed     Spi acquire     %{HIL_SPI_DEV}  %{HIL_DUT_NSS_PORT}  %{HIL_DUT_NSS_PIN}  @{args}  &{kwargs}
 
+SPI Acquire Should Timeout
+    [Documentation]             Acquire SPI with default parameters
+    [Arguments]                 @{args}  &{kwargs}
+    API Call Should Timeout     Spi acquire     %{HIL_SPI_DEV}  %{HIL_DUT_NSS_PORT}  %{HIL_DUT_NSS_PIN}  @{args}  &{kwargs}
+
 SPI Release Should Succeed
     [Documentation]             Release SPI with default parameters
     API Call Should Succeed     Spi release     %{HIL_SPI_DEV}
@@ -24,3 +29,18 @@ SPI Transfer Bytes Should Succeed
     [Arguments]                 @{args}  &{kwargs}
     [Documentation]             Transfer SPI bytes with default parameters should succeed
     API Call Should Succeed     Spi transfer bytes  %{HIL_SPI_DEV}  %{HIL_DUT_NSS_PORT}  %{HIL_DUT_NSS_PIN}  @{args}  &{kwargs}
+
+SPI Transfer Byte Should Succeed
+    [Arguments]                 @{args}  &{kwargs}
+    [Documentation]             Transfer SPI byte with default parameters should succeed
+    API Call Should Succeed     Spi transfer byte  %{HIL_SPI_DEV}  %{HIL_DUT_NSS_PORT}  %{HIL_DUT_NSS_PIN}  @{args}  &{kwargs}
+
+SPI Transfer Reg Should Succeed
+    [Arguments]                 @{args}  &{kwargs}
+    [Documentation]             Transfer SPI reg with default parameters should succeed
+    API Call Should Succeed     Spi transfer reg  %{HIL_SPI_DEV}  %{HIL_DUT_NSS_PORT}  %{HIL_DUT_NSS_PIN}  @{args}  &{kwargs}
+
+SPI Transfer Regs Should Succeed
+    [Arguments]                 @{args}  &{kwargs}
+    [Documentation]             Transfer SPI regs with default parameters should succeed
+    API Call Should Succeed     Spi transfer regs  %{HIL_SPI_DEV}  %{HIL_DUT_NSS_PORT}  %{HIL_DUT_NSS_PIN}  @{args}  &{kwargs}

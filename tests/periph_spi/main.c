@@ -59,7 +59,7 @@ static struct {
     spi_cs_t cs;
 } spiconf;
 
-char printbuf[64] = {0};
+char printbuf[SHELL_DEFAULT_BUFSIZE] = {0};
 uint8_t in_buf[64];
 uint8_t out_buf[64];
 
@@ -334,7 +334,7 @@ int cmd_spi_transfer_regs(int argc, char **argv)
         len = in_len;
     }
     else {
-        len = 6 - argc;
+        len = argc - 6;
         out = out_buf;
         for (unsigned int i = 0; i < len; i++) {
             CHECK_ASSERT(sc_arg2u8(argv[6 + i], &out[i]) == ARGS_OK, "Could not parse OUT bytes");
@@ -344,7 +344,7 @@ int cmd_spi_transfer_regs(int argc, char **argv)
     sprintf(printbuf + offset, "in=%s len=%u", in_len ? "data" : "NULL", len);
 
     print_cmd(PARSER_DEV_NUM, printbuf);
-    spi_transfer_regs(dev, GPIO_PIN(port, pin), reg, in, out, len);
+    spi_transfer_regs(dev, GPIO_PIN(port, pin), reg, out, in, len);
 
     if (in != NULL) {
         for (unsigned int i = 0; i < len; i++) {
