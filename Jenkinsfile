@@ -1,22 +1,64 @@
 def nodes = nodesByLabel('HIL')
-def boards = []
-def tests = []
-def nodeMap = [:]
 
-def triggers = []
-
-if ("${env.BRANCH_NAME}" == 'nightly') {
-    // build master with latest RIOT daily at 1:00 AM
-    triggers << parameterizedCron('0 1 * * * % HIL_RIOT_VERSION=master')
+pipeline {
+    agent { label 'master' }
+    options {
+        // If the whole process takes more than x hours then exit
+        // This must be longer since multiple jobs can be started but waiting on nodes to complete
+        timeout(time: 3, unit: 'HOURS')
+        // Failing fast allows the nodes to be interrupted as some steps can take a while
+        parallelsAlwaysFailFast()
+    }
+    parameters {
+        choice(name: 'HIL_RIOT_VERSION', choices: ['submodule', 'master', 'pull'], description: 'The RIOT branch or PR to test.')
+        string(name: 'HIL_RIOT_PULL', defaultValue: '0', description: 'RIOT pull request number')
+    }
+    triggers {
+        parameterizedCron('0 1 * * * % HIL_RIOT_VERSION=master')
+    }
+    stages {
+        stage('setup') {
+            steps {
+                stepClone()
+                stash name: 'sources'
+            }
+        }
+        stage('node test') {
+            steps {
+                runParallel items: nodes.collect { "${it}" }
+            }
+        }
+        stage('Notify') {
+            steps {
+                emailext (
+                    body: '''${SCRIPT, template="groovy-html.template"}''',
+                    mimeType: 'text/html',
+                    subject: "${currentBuild.fullDisplayName}",
+                    from: 'jenkins@riot-ci.inet.haw-hamburg.de',
+                    to: '${DEFAULT_RECIPIENTS}',
+                    replyTo: '${DEFAULT_RECIPIENTS}'
+                )
+            }
+        }
+    }
 }
 
-properties([
-  parameters([
-        choice(name: 'HIL_RIOT_VERSION', choices: ['submodule', 'master', 'pull'], description: 'The RIOT branch or PR to test.'),
-        string(name: 'HIL_RIOT_PULL', defaultValue: '0', description: 'RIOT pull request number')
-   ]),
-   pipelineTriggers(triggers)
-])
+def runParallel(args) {
+    parallel args.items.collectEntries { name -> [ "${name}": {
+
+        node (name) {
+            stage("${name}") {
+                // We want to timeout a node if it doesn't respond
+                // The timeout should only start once it is acquired
+                timeout(time: 60, unit: 'MINUTES') {
+                    script {
+                        stepRunNodeTests()
+                    }
+                }
+            }
+        }
+    }]}
+}
 
 def stepClone()
 {
@@ -56,118 +98,83 @@ def stepClone()
     }
 }
 
-def stepPrintEnv(board, test)
+def stepRunNodeTests()
+{
+    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+        def tests = []
+        stage( "${env.BOARD} setup"){
+            stepPrepareNodeWorkingDir()
+            tests = stepDiscoverTests()
+        }
+        for (int i=0; i < tests.size(); i++) {
+            stage("${tests[i]}") {
+                def timeout_stop_exc = null
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE', catchInterruptions: false) {
+                    stepPrintEnv()
+                    stepReset(tests[i])
+                    stepMake(tests[i])
+                    stepFlash(tests[i])
+                    stepTest(tests[i])
+                    stepArchiveTestResults(tests[i])
+                }
+            }
+        }
+    }
+}
+
+def stepPrepareNodeWorkingDir()
+{
+    deleteDir()
+    unstash name: 'sources'
+    sh 'pwd'
+    sh 'ls -alh'
+}
+
+def stepDiscoverTests() {
+    return sh(returnStdout: true,
+    script:  """
+                for dir in \$(find tests -maxdepth 1 -mindepth 1 -type d); do
+                    [ -d \$dir/tests ] && { echo \$dir ; } || true
+                done
+            """).tokenize()
+}
+
+def stepPrintEnv()
 {
     sh 'dist/tools/ci/print_environment.sh'
 }
 
-def stepPrepareWorkingDir()
-{
-    deleteDir()
-    unstash name: 'sources'
-}
-
-def stepReset(board, test)
+def stepReset(test)
 {
     sh "python3 -m bph_pal --philip_reset"
     sh "make -C ${test} reset"
 }
 
-def stepFlash(board, test)
+def stepMake(test)
 {
-    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-        sh "make -C ${test} flash"
-    }
+    sh "make -C ${test}"
 }
 
-def stepTests(board, test)
+def stepFlash(test)
+{
+    sh "make -C ${test} flash-only"
+}
+
+def stepTest(test)
 {
     def test_name = test.replaceAll('/', '_')
     sh "make -C ${test} robot-clean || true"
-    catchError(buildResult: 'UNSTABLE', stageResult: 'SUCCESS') {
+    // We don't want to stop running other tests since the robot-test is allowed to fail
+    catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE', catchInterruptions: false) {
         sh "make -C ${test} robot-test"
     }
+}
+
+def stepArchiveTestResults(test)
+{
+    def test_name = test.replaceAll('/', '_')
     sh "make -C ${test} robot-html || true"
-
-    archiveArtifacts artifacts: "build/robot/${board}/${test_name}/*.xml"
-    archiveArtifacts artifacts: "build/robot/${board}/${test_name}/*.html"
-    junit "build/robot/${board}/${test_name}/xunit.xml"
-}
-
-// function to return steps per board
-def parallelSteps (board, test) {
-    return {
-        node (board) {
-            catchError() {
-                stepPrintEnv(board, test)
-                stepReset(board, test)
-                stepFlash(board, test)
-                stepTests(board, test)
-            }
-        }
-    }
-}
-
-// detect connected boards and available tests
-stage ("setup") {
-    node ("master") {
-        stepClone()
-        stash name: 'sources'
-        // discover test applications
-        tests = sh(returnStdout: true,
-                   script:  """
-                                for dir in \$(find tests -maxdepth 1 -mindepth 1 -type d); do
-                                    [ -d \$dir/tests ] && { echo \$dir ; } || true
-                                done
-                            """).tokenize()
-        echo "run TESTS: " + tests.join(",")
-        // discover available boards
-        for (int i=0; i<nodes.size(); ++i) {
-            def nodeName = nodes[i];
-            node (nodeName) {
-                boards.push(env.BOARD)
-            }
-        }
-        boards.unique()
-        echo "use BOARDS: " + boards.join(",")
-    }
-}
-
-for (int i=0; i<nodes.size(); ++i) {
-     def nodeName = nodes[i];
-     nodeMap[nodeName] = {
-        node {
-           stepPrepareWorkingDir()
-        }
-    }
-}
-
-stage ("worker setup") {
-    parallel (nodeMap)
-}
-
-// create a stage per test with one step per board
-for(int i=0; i < tests.size(); i++) {
-    test = tests[i].trim()
-    stage(test) {
-        parallel (
-            boards.collectEntries {
-                ["${it}" : parallelSteps(it, test)]
-            }
-        )
-    }
-}
-
-stage('Notify') {
-    node("master") {
-        def jobName = currentBuild.fullDisplayName
-        emailext (
-            body: '''${SCRIPT, template="groovy-html.template"}''',
-            mimeType: 'text/html',
-            subject: "${jobName}",
-            from: 'jenkins@riot-ci.inet.haw-hamburg.de',
-            to: '${DEFAULT_RECIPIENTS}',
-            replyTo: '${DEFAULT_RECIPIENTS}'
-        )
-    }
+    archiveArtifacts artifacts: "build/robot/${env.BOARD}/${test_name}/*.xml"
+    archiveArtifacts artifacts: "build/robot/${env.BOARD}/${test_name}/*.html"
+    junit "build/robot/${env.BOARD}/${test_name}/xunit.xml"
 }
