@@ -14,7 +14,9 @@ pipeline {
         string(name: 'HIL_RIOT_PULL', defaultValue: '0', description: 'RIOT pull request number')
     }
     triggers {
-        parameterizedCron('0 1 * * * % HIL_RIOT_VERSION=master')
+        parameterizedCron(env.BRANCH_NAME == 'master' ? '''
+# schedule every night at 01:00
+0 1 * * * % HIL_RIOT_VERSION=master''' : '')
     }
     stages {
         stage('setup') {
