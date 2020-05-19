@@ -28,5 +28,4 @@ Verify SPI_MISO     spi             dut_miso        %{HIL_DUT_MISO_PORT}    %{HI
 Verify SPI_MOSI     spi             dut_mosi        %{HIL_DUT_MOSI_PORT}    %{HIL_DUT_MOSI_PIN}
 Verify I2C_SCL      i2c             dut_scl         %{HIL_DUT_SCL_PORT}     %{HIL_DUT_SCL_PIN}
 Verify I2C_SDA      i2c             dut_sda         %{HIL_DUT_SDA_PORT}     %{HIL_DUT_SDA_PIN}
-Verify DAC          dac             dut_dac         %{HIL_DUT_DAC_PORT}     %{HIL_DUT_DAC_PIN}
 Verify ADC          adc             dut_adc         %{HIL_DUT_ADC_PORT}     %{HIL_DUT_ADC_PIN}
