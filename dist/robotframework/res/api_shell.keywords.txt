@@ -56,9 +56,10 @@ API Result Data Should Not Contain
 API Call Repeat on Timeout
     [Documentation]     Repeats the given API ``call`` up to 5 times on timeout.
     [Arguments]         ${call}  @{args}  &{kwargs}
-    :FOR    ${i}    IN RANGE  0  16
-    \   Run Keyword And Ignore Error  API Call Should Timeout  ${call}  @{args}  &{kwargs}
-    \   Run Keyword If  "${RESULT['result']}"!="Timeout"  Exit For Loop
+    FOR    ${i}    IN RANGE  0  16
+        Run Keyword And Ignore Error  API Call Should Timeout  ${call}  @{args}  &{kwargs}
+        Run Keyword If  "${RESULT['result']}"!="Timeout"  Exit For Loop
+    END
     Should Contain      ${RESULT['result']}   Success
 
 API Firmware Should Match
