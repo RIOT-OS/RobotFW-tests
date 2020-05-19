@@ -14,7 +14,9 @@ pipeline {
         string(name: 'HIL_RIOT_PULL', defaultValue: '0', description: 'RIOT pull request number')
     }
     triggers {
-        parameterizedCron('0 1 * * * % HIL_RIOT_VERSION=master')
+        parameterizedCron(env.BRANCH_NAME == 'master' ? '''
+# schedule every night at 01:00
+0 1 * * * % HIL_RIOT_VERSION=master''' : '')
     }
     stages {
         stage('setup') {
@@ -64,11 +66,6 @@ def stepClone()
 {
     deleteDir()
     checkout scm
-    // update nightly branch to latest master
-    if ("${env.BRANCH_NAME}" == 'nightly') {
-        // update nightly branch to master
-        sh 'git pull --rebase origin master'
-    }
     if ("${env.BRANCH_NAME}" == 'nightly') {
         // update nightly branch to latest master and push
         withCredentials([usernamePassword(credentialsId: 'da54a500-472f-4005-9399-a0ab5ce4da7e', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
