@@ -13,14 +13,10 @@ pipeline {
         choice(name: 'HIL_RIOT_VERSION', choices: ['submodule', 'master', 'pull'], description: 'The RIOT branch or PR to test.')
         string(name: 'HIL_RIOT_PULL', defaultValue: '0', description: 'RIOT pull request number')
     }
-    triggers {
-        parameterizedCron(env.BRANCH_NAME == 'master' ? '''
-# schedule every night at 01:00
-0 1 * * * % HIL_RIOT_VERSION=master''' : '')
-    }
     stages {
         stage('setup') {
             steps {
+                createPipelineTriggers()
                 stepClone()
                 stash name: 'sources'
             }
@@ -60,6 +56,18 @@ def runParallel(args) {
             }
         }
     }]}
+}
+
+void createPipelineTriggers() {
+    script {
+        def triggers = []
+        if (env.BRANCH_NAME == 'nightly') {
+            triggers = [parameterizedCron('0 1 * * * % HIL_RIOT_VERSION=master')]
+        }
+        properties([
+            pipelineTriggers(triggers)
+        ])
+    }
 }
 
 def stepClone()
