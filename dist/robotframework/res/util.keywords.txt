@@ -8,3 +8,9 @@ Length Should Be Greater
     [Arguments]         ${list}     ${gtlen}
     ${length}=          Get Length  ${list}
     Should be True      ${length} > ${gtlen}
+
+Record Property
+    [Documentation]     Adds the given property in output
+    [Arguments]         ${name}     ${value}
+    Log                 NAME: ${name}
+    Log                 VALUE: ${value}
