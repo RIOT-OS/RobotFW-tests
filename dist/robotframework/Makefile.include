@@ -2,11 +2,10 @@
 RFBASE    ?= $(TESTBASE)/dist/robotframework
 RFPYPATH  ?= $(APPDIR)/tests:$(RFBASE)/lib:$(RFBASE)/res
 RFOUTPATH ?= $(BUILD_DIR)/robot/$(BOARD)/$(APPLICATION)
-# search for RF test script files
-ROBOT_FILES ?= $(sort $(wildcard tests/*.robot))
+ROBOT_TESTDIR ?= tests/
 
-$(RFOUTPATH)/output.xml: $(ROBOT_FILES)
-	python3 -m robot.run --noncritical skip \
+$(RFOUTPATH)/output.xml: $(ROBOT_TESTDIR)
+	-python3 -m robot.run --noncritical skip \
 				--name "$(APPLICATION)" \
 				--noncritical warn-if-failed \
 				--settag "APP_$(APPLICATION)" \
