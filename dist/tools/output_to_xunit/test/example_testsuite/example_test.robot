@@ -9,6 +9,10 @@ Call Library
     ${RESULT}=          Run Keyword  ${call}
     Set Suite Variable  ${RESULT}
 
+Predefined Keyword
+    Call Library        TestData.Get Long String
+    Record Property     LONG_STRING    ${RESULT}
+
 *** Test Cases ***
 Passed Testcase
     Pass Execution  TEST PASSED
@@ -31,3 +35,4 @@ Record Long List
 Record Long Dict
     Call Library        TestData.Get Long Dict
     Record Property     LONG_DICT      ${RESULT}
+Record using keyword    Predefined Keyword

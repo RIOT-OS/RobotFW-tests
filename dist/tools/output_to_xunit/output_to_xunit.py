@@ -68,7 +68,7 @@ for suite in child_suites:
             testsuite["skipped"] += 1
 
         testcase["records"] = list()
-        for record in test.findall("kw[@name='Record Property']"):
+        for record in test.findall(".//kw[@name='Record Property']"):
             r = dict()
             for e in record.iter("msg"):
                 text = e.text
