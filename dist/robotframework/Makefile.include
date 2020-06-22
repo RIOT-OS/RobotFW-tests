@@ -1,7 +1,7 @@
 # RF specific paths
 RFBASE    ?= $(TESTBASE)/dist/robotframework
 RFPYPATH  ?= $(APPDIR)/tests:$(RFBASE)/lib:$(RFBASE)/res
-RFOUTPATH ?= $(BUILD_DIR)/robot/$(BOARD)/$(APPLICATION)/
+RFOUTPATH ?= $(BUILD_DIR)/robot/$(BOARD)/$(APPLICATION)
 # search for RF test script files
 ROBOT_FILES ?= $(sort $(wildcard tests/*.robot))
 
@@ -18,9 +18,10 @@ $(RFOUTPATH)/output.xml: $(ROBOT_FILES)
 				-l NONE \
 				-o $@ \
 				-r NONE \
-				--xunit $(RFOUTPATH)/xunit.xml \
-				--xunitskipnoncritical \
 				$^
+	python3 $(TESTBASE)/dist/tools/output_to_xunit/output_to_xunit.py \
+				--output $(RFOUTPATH)/xunit.xml \
+				$@
 
 # RF make targets
 robot-test: $(RFOUTPATH)/output.xml
