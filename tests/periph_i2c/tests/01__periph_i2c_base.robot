@@ -44,3 +44,12 @@ Read Byte After Multiple NACKs Should Succeed
     API Call Should Error       I2C Read Byte  addr=43
     API Call Should Succeed     I2C Read Byte
     API Call Should Succeed     I2C Release
+
+Pins High After Release Should Succeed
+    [Documentation]             Verify pins are high after release.
+    API Call Should Succeed     I2C Acquire
+    API Call Should Succeed     I2C Release
+    API Call Should Succeed     PHiLIP.read reg  i2c.dut_sda.level
+    Should Be Equal             ${RESULT['data']}  ${1}
+    API Call Should Succeed     PHiLIP.read reg  i2c.dut_scl.level
+    Should Be Equal             ${RESULT['data']}  ${1}
