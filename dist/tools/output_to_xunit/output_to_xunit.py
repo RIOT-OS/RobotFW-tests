@@ -122,4 +122,4 @@ for tc in testsuite["testcases"]:
             record.set("value", r["value"])
 
 newtree = ET.ElementTree(newroot)
-newtree.write(args.output)
+newtree.write(args.output, encoding="UTF-8", xml_declaration=True)
