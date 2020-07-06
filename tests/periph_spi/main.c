@@ -156,16 +156,16 @@ int cmd_spi_acquire(int argc, char **argv)
     if (strcmp(argv[3], "100k") == 0) {
         spiconf.clk = SPI_CLK_100KHZ;
     }
-    else if (strcmp(argv[3], "100k") == 0) {
+    else if (strcmp(argv[3], "400k") == 0) {
         spiconf.clk = SPI_CLK_400KHZ;
     }
-    else if (strcmp(argv[3], "400k") == 0) {
+    else if (strcmp(argv[3], "1M") == 0) {
         spiconf.clk = SPI_CLK_1MHZ;
     }
-    else if (strcmp(argv[3], "1M") == 0) {
+    else if (strcmp(argv[3], "5M") == 0) {
         spiconf.clk = SPI_CLK_5MHZ;
     }
-    else if (strcmp(argv[3], "5M") == 0) {
+    else if (strcmp(argv[3], "10M") == 0) {
         spiconf.clk = SPI_CLK_10MHZ;
     }
     else {
