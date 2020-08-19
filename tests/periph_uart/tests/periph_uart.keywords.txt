@@ -36,7 +36,10 @@ UART Write Should Timeout
 UART Mode Should Exist
     [Documentation]             Verify DUT supports UART mode configuration
     ${status}   ${value}=       Run Keyword And Ignore Error   API Call Should Succeed   Uart Mode  %{HIL_UART_DEV}
-    Pass Execution If           '${status}'=='FAIL'   Feature is not supported
+    Run Keyword If              '${status}'=='FAIL'  UART Mode not supported
+
+UART Mode not supported
+    Fail  This mode is not supported for this board  skip
 
 PHILIP Setup UART
     [Documentation]             Setup uart parameters on PHiLIP
