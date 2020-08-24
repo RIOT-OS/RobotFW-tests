@@ -41,6 +41,10 @@ class PeriphGpioIf(DutShell):
         """Get the metadata of the firmware."""
         return self.send_cmd('get_metadata')
 
+    def lock(self):
+        """Lock the device"""
+        return self.send_cmd('lock')
+
     def get_command_list(self):
         """List of all commands."""
         cmds = list()
