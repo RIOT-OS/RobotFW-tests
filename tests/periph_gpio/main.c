@@ -59,10 +59,20 @@ int cmd_get_metadata(int argc, char **argv)
     return 0;
 }
 
+int cmd_lock(int argc, char **argv)
+{
+    (void)argv;
+    (void)argc;
+
+    while(1);
+    return 0;
+}
+
 static const shell_command_t shell_commands[] = {
     { "gpio_set", "set pin to HIGH", set },
     { "gpio_clear", "set pin to LOW", clear },
     { "get_metadata", "Get the metadata of the test firmware", cmd_get_metadata },
+    { "lock", "Lock the device", cmd_lock},
     { NULL, NULL, NULL }
 };
 
