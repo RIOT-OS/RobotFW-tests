@@ -8,6 +8,10 @@ FEATURES_OPTIONAL += periph_uart_modecfg
 USEMODULE += shell
 USEMODULE += xtimer
 
+ifeq ($(HIL_UART_DEV), )
+$(error ERROR: There is no specified uart device. This test requires 2 or more uarts)
+endif
+
 export HIL_UART_DEV
 
 include $(RIOTBASE)/Makefile.include
