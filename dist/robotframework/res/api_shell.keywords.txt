@@ -68,6 +68,12 @@ API Firmware Should Match
     API Call Repeat on Timeout  Get Metadata
     Should Contain      ${RESULT['msg']}  ${firmware}
 
+API Firmware Data Should Match
+    [Documentation]     Verify that the DUT runs the required API test firmware
+    [Arguments]         ${firmware}=%{APPLICATION}
+    API Call Repeat on Timeout  Get Metadata
+    Should Contain      ${RESULT['data']}  ${firmware}
+
 API Sync Shell
     [Documentation]     Verify that the DUT runs the required API test firmware
     [Arguments]         ${firmware}=%{APPLICATION}

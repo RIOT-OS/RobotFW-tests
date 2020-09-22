@@ -1,3 +1,5 @@
+env/
+
 # Object files
 *.o
 # Documentation artifacts
