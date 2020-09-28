@@ -100,15 +100,23 @@ def get_repo_val(repo_path, flatten=False):
     repo_params = {}
 
     try:
-        branch = repo.active_branch
-        repo_params[f'{prefix_name}commit_id'] = branch.commit.hexsha
-        repo_params[f'{prefix_name}branch_name'] = branch.name
-        td = branch.commit.authored_datetime.strftime("%Y-%m-%dT%H:%M:%S")
-        repo_params[f'{prefix_name}commit_timestamp'] = td
-    except TypeError:
-        pass
+        commit = repo.head.commit
+        repo_params['{}commit_id'.format(prefix_name)] = commit.hexsha
+    except TypeError as exc:
+        logging.warning("commit_id: %r", exc)
     try:
-        repo_params[f'{prefix_name}version'] = repo.git.describe()
+        commit = repo.head.commit
+        td = commit.authored_datetime.strftime("%Y-%m-%dT%H:%M:%S")
+        repo_params['{}commit_timestamp'.format(prefix_name)] = td
+    except TypeError as exc:
+        logging.warning("commit_timestamp: %r", exc)
+    try:
+        branch = repo.active_branch
+        repo_params['{}branch_name'.format(prefix_name)] = branch.name
+    except TypeError as exc:
+        logging.debug("branch_name: %r", exc)
+    try:
+        repo_params['{}version'.format(prefix_name)] = repo.git.describe()
     except git.exc.GitCommandError:
         logging.debug("%r has no version", repo_name)
     ret = {}
