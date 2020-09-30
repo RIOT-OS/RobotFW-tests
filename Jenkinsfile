@@ -26,7 +26,12 @@ pipeline {
                 runParallel items: nodes.collect { "${it}" }
             }
         }
-        stage('Notify') {
+        stage('compile results') {
+            steps {
+                step_compile_results()
+            }
+        }
+        stage('notify') {
             steps {
                 emailext (
                     body: '''${SCRIPT, template="groovy-html.template"}''',
@@ -68,6 +73,24 @@ void createPipelineTriggers() {
             pipelineTriggers(triggers)
         ])
     }
+}
+
+def step_compile_results()
+{
+    /* Some hacks are needed since the master must run the script on the
+     * archive but there is not simple way of finding the location of the
+     * archive. The best way is to take the env vars and parse them to
+     * fit the path. The branch name has some kind of hash at the end so an ls
+     * and grep should return whatever the directory name is.
+     * There is an assumption that the grep will only find one result
+     */
+    sh '''
+        HIL_JOB_NAME=$(echo ${JOB_NAME}| cut -d'/' -f 1)
+        HIL_BRANCH_NAME=$(echo $JOB_NAME| cut -d'/' -f 2)
+        HIL_BRANCH_NAME=$(echo $HIL_BRANCH_NAME | sed 's/%2F/-/g')
+        HIL_BRANCH_NAME=$(ls ${JENKINS_HOME}/jobs/${HIL_JOB_NAME}/branches/ | grep "^$HIL_BRANCH_NAME")
+        ./dist/tools/ci/results_to_xml.sh ${JENKINS_HOME}/jobs/${HIL_JOB_NAME}/branches/${HIL_BRANCH_NAME}/builds/${BUILD_NUMBER}/archive/build/robot/
+    '''
 }
 
 def stepClone()
