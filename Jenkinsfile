@@ -204,5 +204,6 @@ def stepArchiveTestResults(test)
     sh "make -C ${test} robot-html || true"
     archiveArtifacts artifacts: "build/robot/${env.BOARD}/${test_name}/*.xml"
     archiveArtifacts artifacts: "build/robot/${env.BOARD}/${test_name}/*.html"
+    archiveArtifacts artifacts: "build/robot/${env.BOARD}/${test_name}/includes/*.html", allowEmptyArchive: true
     junit "build/robot/${env.BOARD}/${test_name}/xunit.xml"
 }
