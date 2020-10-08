@@ -1,6 +1,10 @@
 /* This file uses both decalritive syntax and scripted.
  * This is because delaritive is simpler and generally preferred but suffer
  * from limited dynamic discovery and implementations.
+ *
+ * @Note If this Jenkinsfile is touched and merged into master it should also
+ * manually be merged into nightly to be executed that night, otherwise it is
+ * one night behind.
  */
 
 /* globals ================================================================== */
@@ -40,9 +44,9 @@ pipeline {
                description: 'Comma separated list of boards')
         string(name: 'TESTS', defaultValue: 'all',
                description: 'Comma separated list of tests')
-        string(name: 'PRE_EXTRA_BUILD_ARGS', defaultValue: 'BUILD_IN_DOCKER=1',
+        string(name: 'PRE_EXTRA_BUILD_ARGS', defaultValue: 'DOCKER_MAKE_ARGS=-j BUILD_IN_DOCKER=1',
                description: 'Additional commands to use before make')
-        string(name: 'POST_EXTRA_BUILD_ARGS', defaultValue: '-j',
+        string(name: 'POST_EXTRA_BUILD_ARGS', defaultValue: '',
                description: 'Additional commands to use after make')
         string(name: 'TEST_COMMAND', defaultValue: 'robot-test',
                description: 'The type of test call in make')
