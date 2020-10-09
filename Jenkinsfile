@@ -40,9 +40,9 @@ pipeline {
                description: 'The RobotFW-Tests branch or PR to test.')
         string(name: 'HIL_RF_PULL', defaultValue: '0',
                description: 'RobotFW-Tests pull request number')
-        string(name: 'BOARDS', defaultValue: 'all',
+        string(name: 'HIL_BOARDS', defaultValue: 'all',
                description: 'Comma separated list of boards')
-        string(name: 'TESTS', defaultValue: 'all',
+        string(name: 'HIL_TESTS', defaultValue: 'all',
                description: 'Comma separated list of tests')
         string(name: 'PRE_EXTRA_BUILD_ARGS', defaultValue: 'DOCKER_MAKE_ARGS=-j BUILD_IN_DOCKER=1',
                description: 'Additional commands to use before make')
@@ -104,7 +104,7 @@ void stepCreatePipelineTriggers() {
     script {
         def triggers = []
         if (env.BRANCH_NAME == 'nightly') {
-            triggers = [parameterizedCron('0 1 * * * % HIL_RIOT_VERSION=master')]
+            triggers = [parameterizedCron('0 1 * * * % HIL_RIOT_VERSION=master; HIL_RF_VERSION=master')]
         }
         properties([
             pipelineTriggers(triggers)
@@ -274,14 +274,18 @@ def stepCompileResults()
      * and grep should return whatever the directory name is.
      * There is an assumption that the grep will only find one result
      */
-    sh '''
+    ret = sh script: '''
         HIL_JOB_NAME=$(echo ${JOB_NAME}| cut -d'/' -f 1)
         HIL_BRANCH_NAME=$(echo $JOB_NAME| cut -d'/' -f 2)
         HIL_BRANCH_NAME=$(echo $HIL_BRANCH_NAME | sed 's/%2F/-/g')
         HIL_BRANCH_NAME=$(echo $HIL_BRANCH_NAME | sed 's/_/-/g')
         HIL_BRANCH_NAME=$(ls ${JENKINS_HOME}/jobs/${HIL_JOB_NAME}/branches/ | grep "^$HIL_BRANCH_NAME")
         ./dist/tools/ci/results_to_xml.sh ${JENKINS_HOME}/jobs/${HIL_JOB_NAME}/branches/${HIL_BRANCH_NAME}/builds/${BUILD_NUMBER}/archive/build/robot/
-    '''
+    ''', returnStatus: true, label: "Compile archived results"
+    if (ret != 0) {
+        sh script:"echo Did not compile results",
+                label: "Did not compile results"
+    }
 }
 
 /* node steps =============================================================== */
@@ -332,15 +336,18 @@ def stepClone()
 
 /* Legacy code, updates nightly with master. */
 def stepUpdateNightly() {
-    if ("${env.BRANCH_NAME}" == 'nightly') {
-    withCredentials([usernamePassword(credentialsId: 'da54a500-472f-4005-9399-a0ab5ce4da7e',
-            passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+    if ("${env.BRANCH_NAME}" == 'nightly' &&
+        "${params.HIL_RIOT_VERSION}" == 'master') {
+        def push_cmd = "git push ${rfUrl} HEAD:nightly -f --force-with-lease"
+        withCredentials([usernamePassword(credentialsId: 'da54a500-472f-4005-9399-a0ab5ce4da7e',
+                passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
         sh script: '''
             git config --global credential.username $GIT_USERNAME
             git config --global credential.helper "!echo password=$GIT_PASSWORD; echo"
-            git pull --rebase origin master
-            git push origin HEAD:nightly
-        ''', label: "Update robot nightly branch"
+            git add RIOT
+            git commit -m "Nightly update of RIOT"
+
+        ''' + push_cmd, label: "Update robot nightly branch"
         }
     }
 }
@@ -351,11 +358,11 @@ def stepUpdateNightly() {
  * Sets nodeBoards
  */
 def stepGetBoards() {
-    if (params.BOARDS == 'all') {
+    if (params.HIL_BOARDS == 'all') {
         nodeBoards = getBoardsFromNodesEnv()
     }
     else {
-        nodeBoards = params.BOARDS.tokenize(',')
+        nodeBoards = params.HIL_BOARDS.tokenize(',')
         /* TODO: Validate if the boards are connected */
     }
     sh script: "echo collected boards: ${nodeBoards.join(",")}",
@@ -382,11 +389,11 @@ def getBoardsFromNodesEnv() {
  * Sets nodeTests
  */
 def stepGetTests() {
-    if (params.TESTS == 'all') {
+    if (params.HIL_TESTS == 'all') {
         nodeTests = getTestsFromDir()
     }
     else {
-        nodeTests = params.TESTS.tokenize(',')
+        nodeTests = params.HIL_TESTS.tokenize(',')
     }
 
     sh script: "echo collected tests: ${nodeTests.join(",")}",
@@ -401,7 +408,7 @@ def getTestsFromDir() {
                     for dir in \$(find tests -maxdepth 1 -mindepth 1 -type d); do
                         [ -d \$dir/tests ] && { echo \$dir ; } || true
                     done
-                """
+                """, label: "Collecting tests"
         tests = tests.tokenize()
         return tests
     }
@@ -438,6 +445,7 @@ def buildJob(board, test) {
         s_name = (board + "_" + test).replace("/", "_")
         stash name: s_name,
                 includes: "${test}/bin/${board}/*.elf,${test}/bin/${board}/*.hex,${test}/bin/${board}/*.bin"
+        sh script: "echo stashed ${s_name}", label: "Stashed ${s_name}"
     }
 }
 
@@ -471,7 +479,7 @@ def runParallel(args) {
 def stepRunNodeTests()
 {
     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-        stage( "${env.BOARD} setup"){
+        stage( "${env.BOARD} setup on  ${env.NODE_NAME}"){
             stepPrepareNodeWorkingDir()
         }
         for (int i=0; i < nodeTests.size(); i++) {
@@ -480,8 +488,8 @@ def stepRunNodeTests()
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE',
                         catchInterruptions: false) {
                     /* TODO: Test to see if the test compiled */
-                    stepPrintEnv()
                     stepUnstashBinaries(nodeTests[i])
+                    stepPrintEnv()
                     /* No need to reset as flashing and the test should manage
                      * this */
                     stepFlash(nodeTests[i])
@@ -496,7 +504,7 @@ def stepRunNodeTests()
 /* Prints the useful env to help understand the test conditions. */
 def stepPrintEnv()
 {
-    sh 'dist/tools/ci/print_environment.sh'
+    sh script: 'dist/tools/ci/print_environment.sh', label: "Print environment"
 }
 
 
@@ -508,19 +516,23 @@ def stepUnstashBinaries(test) {
 /* Flashes binary to the DUT of the node. */
 def stepFlash(test)
 {
-    sh "make -C ${test} flash-only"
+    sh script: "make -C ${test} flash-only", label: "Flash ${test}"
 }
 
 /* Cleans the robot test directory and runs the robot tests. */
 def stepTest(test)
 {
     def test_name = test.replaceAll('/', '_')
-    sh "make -C ${test} ${params.CLEAN_COMMAND} || true"
+    if (params.CLEAN_COMMAND != "") {
+        sh script: "make -C ${test} ${params.CLEAN_COMMAND} || true",
+                label: "Cleaning before ${test} test"
+    }
     /* We don't want to stop running other tests since the robot-test is
      * allowed to fail */
     catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE',
             catchInterruptions: false) {
-        sh "make -C ${test} ${params.TEST_COMMAND}"
+        sh script: "make -C ${test} ${params.TEST_COMMAND}",
+                label: "Run ${test} test"
     }
 }
 
@@ -528,11 +540,12 @@ def stepTest(test)
 def stepArchiveTestResults(test)
 {
     def test_name = test.replaceAll('/', '_')
-    sh "make -C ${test} robot-html || true"
-    archiveArtifacts artifacts: "build/robot/${env.BOARD}/${test_name}/*.xml"
-    archiveArtifacts artifacts: "build/robot/${env.BOARD}/${test_name}/*.html"
-    archiveArtifacts artifacts: "build/robot/${env.BOARD}/${test_name}/includes/*.html", allowEmptyArchive: true
-    junit "build/robot/${env.BOARD}/${test_name}/xunit.xml"
+    sh script: "make -C ${test} robot-html || true",
+            label: "Attempt to build html from robot-results"
+    def base_dir = "build/robot/${env.BOARD}/${test_name}/"
+    archiveArtifacts artifacts: "${base_dir}*.xml,${base_dir}*.html,${base_dir}*.html,${base_dir}includes/*.html",
+            allowEmptyArchive: true
+    junit testResults: "${base_dir}xunit.xml", allowEmptyResults: true
 }
 
 /* tests ==================================================================== */
