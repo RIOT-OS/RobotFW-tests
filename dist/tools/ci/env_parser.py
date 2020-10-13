@@ -84,7 +84,7 @@ def toolchain_versions_to_dict(print_toolchain_versions_path, flatten=False):
     return riot_env
 
 
-def get_repo_val(repo_path, flatten=False):
+def get_repo_val(repo_path, repo_name=None, flatten=False):
     logging.debug("Getting repo info from %r", repo_path)
     try:
         repo = git.Repo(repo_path)
@@ -92,8 +92,9 @@ def get_repo_val(repo_path, flatten=False):
         logging.info("%r", exc)
         return []
     remote_url = repo.remotes[0].config_reader.get("url")
-    repo_name = os.path.splitext(os.path.basename(remote_url))[0]
-    repo_name = repo_name.lower().replace('-', '_')
+    if repo_name is None:
+        repo_name = os.path.splitext(os.path.basename(remote_url))[0]
+        repo_name = repo_name.lower().replace('-', '_')
     prefix_name = ""
     if flatten:
         prefix_name = repo_name + "_"
@@ -217,8 +218,10 @@ def main(args):
             logging.info("git module missing")
             logging.info("try to pip install gitpython")
         else:
-            env.update(get_repo_val(args.riot_dir, flatten=args.flatten))
-            env.update(get_repo_val(args.rf_dir, flatten=args.flatten))
+            env.update(get_repo_val(args.riot_dir, repo_name="RIOT",
+                                    flatten=args.flatten))
+            env.update(get_repo_val(args.rf_dir, repo_name="RobotFW-Tests",
+                                    flatten=args.flatten))
     if args.env:
         env.update(env_to_dict(flatten=args.flatten))
     if args.py:

@@ -7,9 +7,6 @@ BASEDIR=$1
 BASEXML=$BASEDIR/robot.xml
 METAXML=$BASEDIR/metadata.xml
 
-SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
-python3 $SCRIPTPATH/env_parser.py -x -g -p -t -e --output=$METAXML
-
 # write header to xml
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > $BASEXML
 echo "<?xml-stylesheet type=\"text/xsl\" href=\"https://ci.riot-os.org/static/robot.xsl\"?>" >> $BASEXML
