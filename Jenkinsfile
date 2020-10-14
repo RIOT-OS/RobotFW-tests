@@ -31,12 +31,12 @@ pipeline {
     /* TODO: Confirm escape characters in extra build args */
     parameters {
         choice(name: 'HIL_RIOT_VERSION',
-               choices: ['submodule', 'master', 'pull'],
+               choices: ['submodule', 'master', 'pull', 'release'],
                description: 'The RIOT branch or PR to test.')
-        string(name: 'HIL_RIOT_PULL', defaultValue: '0',
-               description: 'RIOT pull request number')
+        string(name: 'HIL_RIOT_VERSION_ARG', defaultValue: '0',
+               description: 'RIOT pull request number or release version')
         choice(name: 'HIL_RF_VERSION',
-               choices: ['current', 'master', 'pull'],
+               choices: ['current', 'pull', 'master'],
                description: 'The RobotFW-Tests branch or PR to test.')
         string(name: 'HIL_RF_PULL', defaultValue: '0',
                description: 'RobotFW-Tests pull request number')
@@ -68,32 +68,32 @@ pipeline {
                 stepUpdateNightly()
                 stepGetBoards()
                 stepGetTests()
+                stepArchiveMetadata()
                 stepBuildJobs()
             }
         }
-
         stage('node test') {
             steps {
                 runParallel items: nodeBoards.collect { "${it}" }
             }
         }
-
         stage('compile results') {
             steps {
                 stepCompileResults()
             }
         }
-        stage('notify') {
-            steps {
-                emailext (
-                    body: '''${SCRIPT, template="groovy-html.template"}''',
-                    mimeType: 'text/html',
-                    subject: "${currentBuild.fullDisplayName}",
-                    from: 'jenkins@riot-ci.inet.haw-hamburg.de',
-                    to: '${DEFAULT_RECIPIENTS}',
-                    replyTo: '${DEFAULT_RECIPIENTS}'
-                )
-            }
+    }
+    post {
+        always {
+            emailext (
+                body: '''${SCRIPT, template="groovy-html.template"}''',
+                mimeType: 'text/html',
+                subject: "${currentBuild.fullDisplayName}",
+                from: 'jenkins@riot-ci.inet.haw-hamburg.de',
+                to: '${DEFAULT_RECIPIENTS}',
+                replyTo: '${DEFAULT_RECIPIENTS}'
+            )
+            stepNotifyOnPR()
         }
     }
 }
@@ -132,7 +132,7 @@ def stepGetRfUrlAndCommit() {
 def stepGetRiotUrlAndCommit() {
     (riotUrl, riotCommitId) = getUrlAndCommitFromParams(
             params.HIL_RIOT_VERSION, "RIOT-OS",
-            "RIOT", params.HIL_RIOT_PULL)
+            "RIOT", params.HIL_RIOT_VERSION_ARG)
     sh script: "echo riotUrl ${riotUrl}"
     sh script: "echo riotCommitId ${riotCommitId}",
             label: "riotCommitId ${riotCommitId}"
@@ -143,24 +143,37 @@ def stepGetRiotUrlAndCommit() {
  * @param ver           Type of version to get {master, pull, current, submodule}
  * @param repo_owner    Repoisitory owner
  * @param repo_name     Repoisitory name
- * @param pull          Optional pull request number
+ * @param ver_arg       Optional pull request number or relase tag
  *
  * @return (url, commit)
  */
-def getUrlAndCommitFromParams(ver, repo_owner, repo_name, pull = 0) {
+def getUrlAndCommitFromParams(ver, repo_owner, repo_name, ver_arg = 0) {
     if (ver == 'master') {
+        sh script: "echo ${repo_name} using master",
+            label: "${repo_name} using master"
         return getUrlAndCommitFromDefault(repo_owner, repo_name)
     }
     else if (ver == 'pull') {
-        assert pull != '0' : "Selected pull of ${repo_name} but no pull entered"
-        return getUrlAndCommitFromPr(repo_owner, repo_name, pull)
+        sh script: "echo ${repo_name} using pull request ${ver_arg}",
+            label: "echo ${repo_name} using pull request ${ver_arg}"
+        assert ver_arg != '0' : "Selected pull of ${repo_name} but no pull entered"
+        return getUrlAndCommitFromPr(repo_owner, repo_name, ver_arg)
     }
     else if (ver == 'current') {
+        sh script: "echo ${repo_name} using current",
+            label: "echo ${repo_name} using current"
         return [env.GIT_URL.take(env.GIT_URL.lastIndexOf('.')),
                 env.GIT_COMMIT]
     }
     else if (ver == 'submodule') {
+        sh script: "echo ${repo_name} using submodule",
+            label: "echo ${repo_name} using submodule"
         return getUrlAndCommitOfSubmodule("RIOT-OS", "RobotFW-Tests")
+    }
+    else if (ver == 'release') {
+        sh script: "echo ${repo_name} using release ${ver_arg}",
+            label: "echo ${repo_name} using release ${ver_arg}"
+        return getUrlAndCommitFromTag(repo_owner, repo_name, ver_arg)
     }
     assert false : "No valid options to get commit and url of ${repo_name}"
 }
@@ -247,6 +260,26 @@ def getUrlAndCommitOfSubmodule(repo_owner, repo_name) {
             jsonObj.submodules.edges[0].node.subprojectCommitOid]
 }
 
+/* Gets the SHA1 commit id and url of a github release.
+ *
+ * @param repo_owner    The owner of the repo.
+ * @param repo_name     The name of the repo.
+ * @param tag           The release tag.
+ *
+ * @return              (url, commit)
+ */
+def getUrlAndCommitFromTag(repo_owner, repo_name, tag) {
+    def query = "-X POST -d \"{\\\"query\\\": \\\"query "
+    query = "${query}{repository(name: \\\\\\\"${repo_name}\\\\\\\","
+    query = "${query}owner: \\\\\\\"${repo_owner}\\\\\\\") "
+    query = "${query}{release (tagName: \\\\\\\"${tag}\\\\\\\")"
+    query = "${query}{tag{target{oid}}}}}\\\"}\" "
+    query = "${query}https://api.github.com/graphql"
+    def jsonObj = queryGithubApi(query)
+    return ["https://github.com/${repo_owner}/${repo_name}",
+            jsonObj.release.tag.target.oid]
+}
+
 /* Helper function for adding credentials for the github api call.
  *
  * @param query     The post authentication string for the api call
@@ -258,7 +291,7 @@ def queryGithubApi(query) {
     withCredentials([string(credentialsId: 'github', variable: 'TOKEN')]) {
         res = sh script: '''
             curl -H "Authorization: token $TOKEN" ''' + query,
-        label: "Fetching commit id and url of submodule", returnStdout: true
+        label: "Query github api", returnStdout: true
     }
     def jsonObj = readJSON text: res
     return jsonObj.data.repository
@@ -280,11 +313,30 @@ def stepCompileResults()
         HIL_BRANCH_NAME=$(echo $HIL_BRANCH_NAME | sed 's/%2F/-/g')
         HIL_BRANCH_NAME=$(echo $HIL_BRANCH_NAME | sed 's/_/-/g')
         HIL_BRANCH_NAME=$(ls ${JENKINS_HOME}/jobs/${HIL_JOB_NAME}/branches/ | grep "^$HIL_BRANCH_NAME")
-        ./dist/tools/ci/results_to_xml.sh ${JENKINS_HOME}/jobs/${HIL_JOB_NAME}/branches/${HIL_BRANCH_NAME}/builds/${BUILD_NUMBER}/archive/build/robot/
-    ''', returnStatus: true, label: "Compile archived results"
-    if (ret != 0) {
-        sh script:"echo Did not compile results",
-                label: "Did not compile results"
+        ARCHIVE_DIR=${JENKINS_HOME}/jobs/${HIL_JOB_NAME}/branches/${HIL_BRANCH_NAME}/builds/${BUILD_NUMBER}/archive/build/robot/
+        if [ -d $ARCHIVE_DIR ]; then
+            ./dist/tools/ci/results_to_xml.sh $ARCHIVE_DIR
+        fi
+    ''', label: "Compile archived results"
+}
+
+def stepNotifyOnPR() {
+    if ("${params.HIL_RF_VERSION}" == 'pull') {
+        def newline = "\\n"
+        def body = "## HiL CI Test Results${newline}"
+        body = "${body}${newline}"
+        body = "${body}Boards Tested: `${nodeBoards}`${newline}"
+        body = "${body}Tests Run: `${nodeTests}`${newline}"
+        body = "${body}${newline}"
+        body = "${body}[Full test results](${RUN_DISPLAY_URL})${newline}"
+        def query = "-X POST -d '{\"body\": \"${body}\"}' "
+        query = "${query}\"https://api.github.com/repos/RIOT-OS/RobotFW-Tests/issues/"
+        query = "${query}${params.HIL_RF_PULL}/comments\""
+        withCredentials([string(credentialsId: 'github', variable: 'TOKEN')]) {
+            sh script: '''
+                curl -H "Authorization: token $TOKEN" ''' + query,
+            label: "Query github api"
+        }
     }
 }
 
@@ -322,9 +374,9 @@ def stepClone()
     }
     else {
         sh script: 'git submodule update --init --depth 1', label: "update RIOT submodule"
-        if ("${params.HIL_RIOT_VERSION}" == 'pull' && "${params.HIL_RIOT_PULL}" != '0') {
+        if ("${params.HIL_RIOT_VERSION}" == 'pull' && "${params.HIL_RIOT_VERSION_ARG}" != '0') {
             // checkout specified PR number
-            def prnum = params.HIL_RIOT_PULL.toInteger()
+            def prnum = params.HIL_RIOT_VERSION_ARG.toInteger()
             sh script: """
                 cd RIOT
                 git fetch origin +refs/pull/${prnum}/merge
@@ -337,13 +389,13 @@ def stepClone()
 /* Legacy code, updates nightly with master. */
 def stepUpdateNightly() {
     if ("${env.BRANCH_NAME}" == 'nightly' &&
-        "${params.HIL_RIOT_VERSION}" == 'master') {
+        "${params.HIL_RIOT_VERSION}" == 'master' &&
+        "${params.HIL_RF_VERSION}" == 'master') {
         def push_cmd = "git push ${rfUrl} HEAD:nightly -f --force-with-lease"
-        withCredentials([usernamePassword(credentialsId: 'da54a500-472f-4005-9399-a0ab5ce4da7e',
-                passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+        withCredentials([string(credentialsId: 'github', variable: 'TOKEN')]) {
         sh script: '''
             git config --global credential.username $GIT_USERNAME
-            git config --global credential.helper "!echo password=$GIT_PASSWORD; echo"
+            git config --global credential.helper "!echo password=$TOKEN; echo"
             git add RIOT
             git commit -m "Nightly update of RIOT"
 
@@ -449,6 +501,15 @@ def buildJob(board, test) {
     }
 }
 
+/* Add metadata file to archive */
+def stepArchiveMetadata() {
+    sh script: """
+            mkdir -p build/robot
+            python3 dist/tools/ci/env_parser.py -x -g -e --output=build/robot/metadata.xml
+            """
+    archiveArtifacts artifacts: "build/robot/metadata.xml"
+}
+
 /* test node steps ========================================================== */
 /* Runs all tests on each board in parallel. */
 def runParallel(args) {
@@ -481,6 +542,7 @@ def stepRunNodeTests()
     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
         stage( "${env.BOARD} setup on  ${env.NODE_NAME}"){
             stepPrepareNodeWorkingDir()
+            stepPrintEnv()
         }
         for (int i=0; i < nodeTests.size(); i++) {
             stage("${nodeTests[i]}") {
@@ -489,7 +551,6 @@ def stepRunNodeTests()
                         catchInterruptions: false) {
                     /* TODO: Test to see if the test compiled */
                     stepUnstashBinaries(nodeTests[i])
-                    stepPrintEnv()
                     /* No need to reset as flashing and the test should manage
                      * this */
                     stepFlash(nodeTests[i])
