@@ -6,7 +6,7 @@ Parses `output.xml` from a RobotFramework result to a xUnit style format. The pa
 
 ```
 # Run tests and generate output.xml
-robot --outputdir build --pythonpath "test:../../robotframework/res/" --noncritical skip --noncritical warn-if-failed test/example_testsuite/
+robot --outputdir build --pythonpath "test:../../robotframework/res/" --noncritical non-critical --noncritical warn-if-failed test/example_testsuite/
 
 # Parse output and generate xunit.xml in the current directory (default)
 python3 output_to_xunit.py build/output.xml
@@ -15,7 +15,7 @@ python3 output_to_xunit.py build/output.xml
 python3 output_to_xunit.py --output build/test_xunit.xml build/output.xml
 ```
 
-NOTE: `Test Failed Testcase` and `Test Fail Skipped Testcase` is supposed to fail.
+NOTE: `Test Failed Testcase` and `Test Fail Non-Critical Testcase` is supposed to fail.
 
 ## Schema Validation
 

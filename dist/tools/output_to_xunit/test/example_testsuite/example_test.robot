@@ -18,10 +18,10 @@ Passed Testcase
     Pass Execution  TEST PASSED
 Failed Testcase
     Fail            TEST FAILED
-Pass Skipped Testcase
-    Set Tags        skip
-Fail Skipped Testcase
-    Set Tags  skip
+Pass Non-Critical Testcase
+    Set Tags        non-critical
+Fail Non-Critical Testcase
+    Set Tags        non-critical
     Fail
 Record Empty value
     Call Library        TestData.Get Empty

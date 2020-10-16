@@ -39,7 +39,7 @@ UART Mode Should Exist
     Run Keyword If              '${status}'=='FAIL'  UART Mode not supported
 
 UART Mode not supported
-    Fail  This mode is not supported for this board  skip
+    Fail  This mode is not supported for this board  non-critical
 
 PHILIP Setup UART
     [Documentation]             Setup uart parameters on PHiLIP
