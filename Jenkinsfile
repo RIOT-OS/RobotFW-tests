@@ -414,7 +414,7 @@ def stepGetBoards() {
         nodeBoards = getBoardsFromNodesEnv()
     }
     else {
-        nodeBoards = params.HIL_BOARDS.tokenize(',')
+        nodeBoards = params.HIL_BOARDS.replaceAll("\\s", "").tokenize(',')
         /* TODO: Validate if the boards are connected */
     }
     sh script: "echo collected boards: ${nodeBoards.join(",")}",
@@ -445,7 +445,7 @@ def stepGetTests() {
         nodeTests = getTestsFromDir()
     }
     else {
-        nodeTests = params.HIL_TESTS.tokenize(',')
+        nodeTests = params.HIL_TESTS.replaceAll("\\s", "").tokenize(',')
     }
 
     sh script: "echo collected tests: ${nodeTests.join(",")}",
