@@ -54,4 +54,4 @@ Verify Periph Pin Is Connected Continue
 
 
 Verify Periph Pin Is Connected Fail
-    Fail  This Periph is not supported here  skip
+    Fail  This Periph is not supported here  non-critical
