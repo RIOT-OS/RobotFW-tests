@@ -27,8 +27,14 @@ $(RFOUTPATH)/output.xml: $(ROBOT_TESTDIR)
 robot-test: $(RFOUTPATH)/output.xml
 
 robot-html:  $(RFOUTPATH)/output.xml
-	python3 -m robot.rebot --noncritical non-critical -d $(RFOUTPATH) $<
+	python3 -m robot.rebot --noncritical skip -d $(RFOUTPATH) $<
+	-python3 $(TESTBASE)/dist/tools/plot/plot_timer_benchmarks.py \
+				--outdir $(RFOUTPATH)/includes \
+				--board $(BOARD) \
+				--for-ci \
+				$(RFOUTPATH)/xunit.xml
 
 robot-clean:
 	@rm -f $(RFOUTPATH)/*.xml
 	@rm -f $(RFOUTPATH)/*.html
+	@rm -rf $(RFOUTPATH)/includes
