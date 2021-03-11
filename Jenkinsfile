@@ -317,6 +317,8 @@ def stepCompileResults()
         if [ -d $ARCHIVE_DIR ]; then
             ./dist/tools/ci/results_to_xml.sh $ARCHIVE_DIR
         fi
+        LATEST_BRANCH_PATH=${JENKINS_HOME}/jobs/${HIL_JOB_NAME}/branches/${HIL_BRANCH_NAME}/builds
+        ln -sf -T ${LATEST_BRANCH_PATH}/${BUILD_NUMBER} ${LATEST_BRANCH_PATH}/latest
     ''', label: "Compile archived results"
 }
 
