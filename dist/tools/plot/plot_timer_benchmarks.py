@@ -1,12 +1,13 @@
 import os
-import subprocess
 import argparse
-from ast import literal_eval
-
-import xml.etree.ElementTree as ET
+import itertools
+import subprocess
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import xml.etree.ElementTree as ET
+
+from ast import literal_eval
 
 
 class FigurePlotter:
@@ -89,6 +90,93 @@ class FigurePlotter:
             include_plotlyjs=self.plotlyjs,
         )
 
+    def plot_jitter(self, filename):
+        def get_value(property):
+            return literal_eval(property.get("value"))
+
+        def get_timer_count(property):
+            return property.get("name").split("-")[1]
+
+        def parse(root):
+            data = {
+                "i": [],
+                "board": [],
+                "timer_version": [],
+                "timer_count": [],
+                "timer_interval": [],
+                "start_time": [],
+                "wakeup_time": [],
+            }
+
+            testcase = root.find(
+                "testcase[@classname='tests_{:s}_benchmarks.Sleep Jitter']".format(
+                    self.timer_version
+                )
+            )
+
+            timer_interval = testcase.find(".//property[@name='timer-interval']")
+            if timer_interval is None:
+                raise RuntimeError("timer_interval not found")
+
+            start_times = [
+                prop
+                for prop in testcase.findall(".//property")
+                if prop.get("name").endswith("start-time")
+                and "dut" not in prop.get("name")
+            ]
+            wakeup_times = [
+                prop
+                for prop in testcase.findall(".//property")
+                if prop.get("name").endswith("wakeup-time")
+                and "dut" not in prop.get("name")
+            ]
+
+            for start, wakeup in zip(start_times, wakeup_times):
+                timer_count = get_timer_count(start)
+                s = get_value(start)
+                w_values = [v * 1000000 for v in get_value(wakeup)]
+
+                data["i"].extend(range(len(w_values)))
+                data["start_time"].extend([s * 1000000] * len(w_values))
+                data["wakeup_time"].extend(w_values)
+                data["timer_count"].extend([timer_count] * len(w_values))
+                data["timer_version"].extend([self.timer_version] * len(w_values))
+                data["board"].extend([self.board] * len(w_values))
+                data["timer_interval"].extend(
+                    [get_value(timer_interval)] * len(w_values)
+                )
+
+            return pd.DataFrame(data)
+
+        df = parse(self.root)
+
+        df["calculated_target"] = (
+            df["start_time"] + (df["i"] + 1) * df["timer_interval"]
+        )
+        df["diff_target_from_start"] = df["calculated_target"] - df["start_time"]
+        df["diff_wakeup_from_start"] = df["wakeup_time"] - df["start_time"]
+        df["diff_wakeup_from_target"] = df["wakeup_time"] - df["calculated_target"]
+
+        fig = px.box(
+            df,
+            x="timer_count",
+            y="diff_wakeup_from_target",
+        )
+
+        fig.update_layout(
+            dict(
+                title="Sleep Jitter  {:s}-{:s}".format(self.board, self.timer_version),
+                xaxis_title="Number of Timers",
+                yaxis_title="Delay from Target Wakeup Time [us]",
+            ),
+        )
+
+        fig.write_html(
+            "{}/{}.html".format(self.outdir, filename),
+            full_html=self.full_html,
+            include_plotlyjs=self.plotlyjs,
+        )
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -100,7 +188,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--board",
         help="specify board",
-        # required=True,
+        required=True,
     )
     parser.add_argument(
         "--for-ci",
@@ -120,6 +208,7 @@ if __name__ == "__main__":
 
     plotter = FigurePlotter(args.input, args.outdir, args.for_ci, args.board)
     plotter.plot_accuracy("accuracy")
+    plotter.plot_jitter("jitter")
 
     # call sed to convert <br> tags to <br /> for XML
     subprocess.run(
