@@ -117,7 +117,7 @@ HIL_JOB_NAME=$(echo ${JOB_NAME}| cut -d'/' -f 1)
  * rfCommitId, riotUrl, and riotCommitId in the node workspace.
  */
 
-def buildOnBuilder(String agentName, List boards) {
+def buildOnBuilder(String agentName) {
     node("${agentName}") {
         stage("Building on ${agentName}") {
             stepCheckoutRobotFWTests()
@@ -137,19 +137,12 @@ def processBuilderTask() {
         }
     }
 
-    int col_val = nodeBoards.size() / builders.size()
-    if (nodeBoards.size() % builders.size()) {
-        col_val++
-    }
-    def split_boards = nodeBoards.collate(col_val)
-
     for(i=0; i < builders.size(); i++) {
         def agentName = nodeList[i]
-        def boards = split_boards[i]
         // skip the null entries in the nodeList
-        println "Preparing task for " + agentName + " on " + boards + " boards"
+        println "Preparing task for " + agentName
         collectBuilders["Build on " + agentName] = {
-            buildOnBuilder(agentName, boards)
+            buildOnBuilder(agentName)
         }
     }
 }
@@ -334,3 +327,4 @@ def stepArchiveTestResults(test)
     archiveArtifacts artifacts: "${base_dir}*.xml", allowEmptyArchive: true
     junit testResults: "${base_dir}xunit.xml", allowEmptyResults: true
 }
+
