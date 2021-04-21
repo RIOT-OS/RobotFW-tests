@@ -395,8 +395,9 @@ int sleep_accuracy_timer_sleep_cmd(int argc, char **argv)
 ************************/
 
 #define JITTER_TIMER_INTERVAL   (10 * MS_PER_SEC)
-#define JITTER_WAKEUPS       (2 * HIL_TEST_REPEAT)
-#define JITTER_START_RECORD  5
+#define JITTER_WAKEUPS          (2 * HIL_TEST_REPEAT)
+#define JITTER_START_RECORD     5
+#define JITTER_PARAM_SIZE       25
 
 typedef struct sleep_jitter_params {
     TIMER_T *timer;
@@ -406,7 +407,7 @@ typedef struct sleep_jitter_params {
 } jitter_params_t;
 
 static mutex_t jitter_mutex = MUTEX_INIT_LOCKED;
-static jitter_params_t jitter_params[25];
+static jitter_params_t jitter_params[JITTER_PARAM_SIZE];
 static uint32_t jitter_wakeups[JITTER_WAKEUPS];
 static uint32_t jitter_start;
 static bool start_record = false;
@@ -419,8 +420,8 @@ void cleanup_jitter(unsigned count, jitter_params_t *params)
         TIMER_REMOVE(params[i].timer);
     }
 
-    memset(jitter_params, 0, sizeof(jitter_params_t) * 25);
-    memset(jitter_wakeups, 0, sizeof(uint32_t) * 25);
+    memset(jitter_params, 0, sizeof(jitter_params));
+    memset(jitter_wakeups, 0, sizeof(jitter_wakeups));
     jitter_start = 0;
     start_record = false;
     jitter_end = false;
