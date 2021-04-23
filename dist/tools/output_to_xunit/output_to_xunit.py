@@ -28,9 +28,8 @@ root = tree.getroot()
 suite = root.find("suite")
 testsuite = {
     "name": suite.get("name"),
-    "failures_non_critical": 0,
     "failures": 0,
-    "errors": 0,
+    "skipped": 0,
 }
 
 starttime = DT.strptime(suite.find("status").get("starttime"), TIME_FORMAT)
@@ -46,7 +45,7 @@ for suite in child_suites:
             "classname": f"{testsuite['name']}.{suite.get('name')}",
             "name": test.get("name"),
             "failed": False,
-            "failed_non_critical": False,
+            "skipped": False,
         }
 
         starttime = DT.strptime(test.find("status").get("starttime"), TIME_FORMAT)
@@ -60,11 +59,10 @@ for suite in child_suites:
             testcase["failed_text"] = test.find("status").text
             testsuite["failures"] += 1
 
-        # collect non-critical failures
-        tags = [tag.text for tag in test.findall("tags/tag")]
-        if "non-critical" in tags:
-            testcase["failed_non_critical"] = True
-            testcase["failed_non_critical_text"] = test.find("status").get("status")
+        elif test.find("status").get("status") == "SKIP":
+            testcase["skipped"] = True
+            testcase["skipped_text"] = test.find("status").text
+            testsuite["skipped"] += 1
 
         testcase["records"] = list()
         for record in test.findall(".//kw[@name='Record Property']"):
@@ -80,10 +78,8 @@ for suite in child_suites:
 
 stats = root.find("statistics/total")
 total_all = next(obj for obj in stats if obj.text == 'All Tests')
-total_critical = next(obj for obj in stats if obj.text == 'Critical Tests')
-testsuite["failures"] = total_critical.get("fail")
-testsuite["failures_non_critical"] = str(int(total_all.get("fail")) - int(total_critical.get("fail")))
-testsuite["tests"] = str(int(total_all.get("pass")) + int(total_all.get("fail")))
+testsuite["failures"] = str(int(total_all.get("fail")))
+testsuite["skipped"] = str(int(total_all.get("skip")))
 testsuite["errors"] = str(len(root.find("errors")))
 testsuite["testcases"] = testcases
 testsuite["tests"] = str(len(testsuite["testcases"]))
@@ -94,8 +90,7 @@ newroot.set("name", testsuite["name"])
 newroot.set("tests", testsuite["tests"])
 newroot.set("errors", testsuite["errors"])
 newroot.set("failures", testsuite["failures"])
-# FIXME: change "skipped" to really mean skipped test
-newroot.set("skipped", testsuite["failures_non_critical"])
+newroot.set("skipped", testsuite["skipped"])
 newroot.set("time", testsuite["time"])
 
 for tc in testsuite["testcases"]:
@@ -104,14 +99,12 @@ for tc in testsuite["testcases"]:
     testcase.set("name", tc["name"])
     testcase.set("time", tc["time"])
 
-    if tc["failed_non_critical"]:
-        # TODO: replace "skipped" with better label
-        non_critical = testcase = ET.SubElement(testcase, "skipped")
-        non_critical.text = tc["failed_non_critical_text"]
+    if tc["skipped"]:
+        skipped = testcase = ET.SubElement(testcase, "skipped")
+        skipped.text = tc["skipped_text"]
     elif tc["failed"]:
         failure = ET.SubElement(testcase, "failure")
         failure.text = tc["failed_text"]
-
 
     if len(tc["records"]) > 0:
         properties = ET.SubElement(testcase, "properties")

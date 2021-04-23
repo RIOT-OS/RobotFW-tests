@@ -6,7 +6,6 @@
 """@package PyToAPI
 This module handles parsing of information from RIOT periph_gpio test.
 """
-from riot_pal import DutShell
 from robot.api import logger
 from robot.version import get_version
 
