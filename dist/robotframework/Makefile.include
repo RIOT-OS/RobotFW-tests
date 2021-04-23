@@ -7,8 +7,6 @@ ROBOT_TESTDIR ?= tests/
 $(RFOUTPATH)/output.xml: $(ROBOT_TESTDIR)
 	-python3 -m robot.run \
 				--name "$(APPLICATION)" \
-				--noncritical non-critical \
-				--noncritical warn-if-failed \
 				--settag "APP_$(APPLICATION)" \
 				--settag "BOARD_$(BOARD)" \
 				--metadata RIOT-Version:$(RIOT_VERSION) \
