@@ -27,7 +27,7 @@ class FigurePlotter:
             raise RuntimeError("timer version not found")
         self.timer_version = version.get("value")
 
-    def plot_accuracy(self, filename):
+    def plot_accuracy(self):
         # parse
         data = {
             "function": [],
@@ -85,12 +85,12 @@ class FigurePlotter:
         )
 
         fig.write_html(
-            "{}/{}.html".format(self.outdir, filename),
+            "{}/{}.html".format(self.outdir, "accuracy"),
             full_html=self.full_html,
             include_plotlyjs=self.plotlyjs,
         )
 
-    def plot_jitter(self, filename):
+    def plot_jitter(self):
         def get_value(property):
             return literal_eval(property.get("value"))
 
@@ -172,10 +172,77 @@ class FigurePlotter:
         )
 
         fig.write_html(
-            "{}/{}.html".format(self.outdir, filename),
+            "{}/{}.html".format(self.outdir, "jitter"),
             full_html=self.full_html,
             include_plotlyjs=self.plotlyjs,
         )
+
+    def plot_set_remove_timer_from_list(self):
+        def parse(root):
+            data = {
+                "i": [],
+                "method": [],
+                "duration": [],
+                "timer_count": [],
+                "timer_version": [],
+                "board": [],
+            }
+
+            path = "testcase[@classname='tests_{:s}_benchmarks.Timer Overhead']//property".format(
+                self.timer_version
+            )
+            properties = [
+                p
+                for p in root.findall(path)
+                if "set" in p.get("name") or "remove" in p.get("name")
+            ]
+
+            for prop in properties:
+                name = prop.get("name").split("-")
+
+                values = [v * 1000000 for v in literal_eval(prop.get("value"))]
+                data["i"].extend(range(len(values)))
+                data["duration"].extend(values)
+                data["timer_count"].extend([int(name[2])] * len(values))
+                data["method"].extend([name[3]] * len(values))
+                data["timer_version"].extend([self.timer_version] * len(values))
+                data["board"].extend([self.board] * len(values))
+
+            return pd.DataFrame(data)
+
+        def plot_overhead_set_remove(type, df):
+            if type not in ["set", "remove"]:
+                raise ValueError
+
+            df = df.loc[df["method"] == type]
+
+            # add box plot
+            fig = px.box(df, x="timer_count", y="duration")
+            # add median trendline
+            df_set_median = df.groupby("timer_count")["duration"].median().reset_index()
+            fig.add_scatter(x=df_set_median["timer_count"], y=df_set_median["duration"])
+            # set title, axis labels
+            operation_title = "Setting" if type == "set" else "Removing"
+            fig.update_layout(
+                dict(
+                    title="Overhead {:s} Timers  {:s}-{:s}".format(
+                        operation_title, self.board, self.timer_version
+                    ),
+                    xaxis_title="Timer Count",
+                    yaxis_title="Duration [us]",
+                    showlegend=False,
+                ),
+            )
+            # save file
+            fig.write_html(
+                "{}/{}.html".format(self.outdir, "{:s}_timer".format(type)),
+                full_html=self.full_html,
+                include_plotlyjs=self.plotlyjs,
+            )
+
+        df = parse(self.root)
+        plot_overhead_set_remove("set", df)
+        plot_overhead_set_remove("remove", df)
 
 
 if __name__ == "__main__":
@@ -207,8 +274,9 @@ if __name__ == "__main__":
         os.makedirs(args.outdir)
 
     plotter = FigurePlotter(args.input, args.outdir, args.for_ci, args.board)
-    plotter.plot_accuracy("accuracy")
-    plotter.plot_jitter("jitter")
+    plotter.plot_accuracy()
+    plotter.plot_jitter()
+    plotter.plot_set_remove_timer_from_list()
 
     # call sed to convert <br> tags to <br /> for XML
     subprocess.run(
