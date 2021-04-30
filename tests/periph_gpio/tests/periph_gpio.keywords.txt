@@ -12,7 +12,7 @@ Verify GPIO Pin Is Connected
     [Arguments]                 ${phil_gpio}       ${dut_port}   ${dut_pin}
     Run Keyword Unless          '${dut_port}' == ''  Verify GPIO Pin Is Connected Continue
     ...                         ${phil_gpio}    ${dut_port}     ${dut_pin}
-    Run Keyword If              '${dut_port}' == ''  Verify Periph Pin Is Connected Fail
+    Skip  This Periph is not supported here
 
 Verify GPIO Pin Is Connected Continue
     [Documentation]             Verify DUT pin is connected to PHiLIP pin with toggle.
@@ -51,7 +51,3 @@ Verify Periph Pin Is Connected Continue
     Sleep                       ${hw_update_time}
     API Call Should Succeed     PHiLIP.Read Reg    ${phil_periph}.${phil_gpio}.level
     Should Be Equal             ${RESULT['data']}  ${0}
-
-
-Verify Periph Pin Is Connected Fail
-    Fail  This Periph is not supported here  non-critical
