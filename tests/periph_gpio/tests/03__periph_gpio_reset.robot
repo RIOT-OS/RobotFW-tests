@@ -15,9 +15,11 @@ Force Tags          periph  gpio
 
 *** Test Cases ***
 Verify Reset Pin Is Connected
-    [Documentation]             Lock the dut and try run another API Call. 
+    [Documentation]             Lock the dut and try run another API Call.
     ...                         It should not succeed until the dut gets reset.
+    Sleep                       1
     API Call Should Timeout     lock
     API Call Should Timeout     get_metadata
     Run Keyword                 RIOT Reset
+    Sleep                       1
     API Call Should Succeed     get_metadata
