@@ -12,7 +12,7 @@ Verify GPIO Pin Is Connected
     [Arguments]                 ${phil_gpio}       ${dut_port}   ${dut_pin}
     Run Keyword Unless          '${dut_port}' == ''  Verify GPIO Pin Is Connected Continue
     ...                         ${phil_gpio}    ${dut_port}     ${dut_pin}
-    Skip  This pin is not supported for this board
+    Skip If                     '${dut_port}' == ''  This pin is not supported for this board
 
 Verify GPIO Pin Is Connected Continue
     [Documentation]             Verify DUT pin is connected to PHiLIP pin with toggle.
@@ -31,7 +31,7 @@ Verify Periph Pin Is Connected
     [Arguments]                 ${phil_periph}      ${phil_gpio}    ${dut_port}     ${dut_pin}
     Run Keyword Unless          '${dut_port}' == ''  Verify Periph Pin Is Connected Continue
     ...                         ${phil_periph}      ${phil_gpio}    ${dut_port}     ${dut_pin}
-    Skip  This pin is not supported for this board
+    Skip If                     '${dut_port}' == ''  This pin is not supported for this board
 
 
 Verify Periph Pin Is Connected Continue
