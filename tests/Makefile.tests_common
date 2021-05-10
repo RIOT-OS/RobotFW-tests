@@ -25,13 +25,12 @@ DEVELHELP ?= 1
 # expose extra metadata
 CFLAGS += -DRIOT_APPLICATION=\"$(APPLICATION)\"
 
-# Add the common folder for all common test helpers
-EXTERNAL_MODULE_DIRS += $(TESTBASE)/utils/common
-EXTERNAL_MODULE_DIRS += $(TESTBASE)/utils/sc_args
-
 # All tests here _should_ use the test helpers
 USEMODULE += test_helpers
 USEMODULE += sc_args
+
+# Add the common folder for all common test helpers
+EXTERNAL_MODULE_DIRS += $(TESTBASE)/utils
 
 # include RF specific settings
 include $(TESTBASE)/dist/robotframework/Makefile.include
