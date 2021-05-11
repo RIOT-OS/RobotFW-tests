@@ -109,9 +109,12 @@ for tc in testsuite["testcases"]:
     if len(tc["records"]) > 0:
         properties = ET.SubElement(testcase, "properties")
         for r in tc["records"]:
-            record = ET.SubElement(properties, "property")
-            record.set("name", r["name"])
-            record.set("value", r["value"])
+            try:
+                record = ET.SubElement(properties, "property")
+                record.set("name", r["name"])
+                record.set("value", r["value"])
+            except KeyError:
+                pass
 
 newtree = ET.ElementTree(newroot)
 newtree.write(args.output, encoding="UTF-8", xml_declaration=True)
