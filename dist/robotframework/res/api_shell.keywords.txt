@@ -11,7 +11,8 @@ API Call Expect
     [Arguments]         ${expect}  ${call}  @{args}  &{kwargs}
     ${RESULT}=          Run Keyword  ${call}  @{args}  &{kwargs}
     Set Suite Variable  ${RESULT}
-    Should Contain      ${RESULT['result']}  ${expect}
+    Should Contain      ${RESULT}  result  ${call} does not have a result, return = ${RESULT}  False
+    Should Contain      ${RESULT['result']}  ${expect}  ${call} expected ${expect} but received ${RESULT['result']}  False
 
 API Call Should Succeed
     [Documentation]     Fails if the given API ``call`` does not succeed.
@@ -56,23 +57,24 @@ API Result Data Should Not Contain
 API Call Repeat on Timeout
     [Documentation]     Repeats the given API ``call`` up to 5 times on timeout.
     [Arguments]         ${call}  @{args}  &{kwargs}
+    Set Local Variable  ${i}               ${0}
     FOR    ${i}    IN RANGE  0  16
         Run Keyword And Ignore Error  API Call Should Timeout  ${call}  @{args}  &{kwargs}
         Run Keyword If  "${RESULT['result']}"!="Timeout"  Exit For Loop
     END
-    Should Contain      ${RESULT['result']}   Success
+    Should Contain      ${RESULT['result']}   Success  ${call} failed after ${i + 1} times with ${RESULT}  False
 
 API Firmware Should Match
     [Documentation]     Verify that the DUT runs the required API test firmware
     [Arguments]         ${firmware}=%{APPLICATION}
     API Call Repeat on Timeout  Get Metadata
-    Should Contain      ${RESULT['msg']}  ${firmware}
+    Should Contain      ${RESULT['msg']}  ${firmware}  Expected app ${firmware} but received ${RESULT['msg']}  False
 
 API Firmware Data Should Match
     [Documentation]     Verify that the DUT runs the required API test firmware
     [Arguments]         ${firmware}=%{APPLICATION}
     API Call Repeat on Timeout  Get Metadata
-    Should Contain      ${RESULT['data']}  ${firmware}
+    Should Contain      ${RESULT['data']}  ${firmware}  Expected app ${firmware} but received ${RESULT['data']}  False
 
 API Sync Shell
     [Documentation]     Verify that the DUT runs the required API test firmware

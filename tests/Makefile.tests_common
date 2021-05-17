@@ -9,6 +9,18 @@ BUILD_DIR ?= $(TESTBASE)/build
 -include $(TESTBASE)/dist/etc/conf/$(BOARD).env
 include $(TESTBASE)/dist/etc/conf/default.env
 
+# This crazy mess, for those who don't read makefile like myself,
+# takes a list of the $(BOARD).env that is loaded, grabs all the
+# variable names, such as HIL_DUT_MOSI_PORT or HIL_UART_DEV, and
+# sorts through them to find if they are empty.
+# If they are not empty it will add them to the FEATURES_PROVIDED
+# list implemented in RIOT. This allows us to now use the
+# FEATURES_REQUIRED in out tests to require certain pinouts being
+# set for that board.
+_HIL_FEATURES_AVAILABLE = $(filter HIL_%,$(.VARIABLES))
+FEATURES_PROVIDED += $(foreach v,$(_HIL_FEATURES_AVAILABLE),$(if $($(v)), $(v)))
+
+
 # Default timeout for serial connection to a board
 export HIL_CMD_TIMEOUT
 
