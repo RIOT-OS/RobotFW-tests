@@ -10,7 +10,7 @@ the RIOT-OS.
 * Python dependencies, to install:
 ```
 pip3 install -r dist/robotframework/requirements.txt
-```
+```test
 
 ## Getting started
 
