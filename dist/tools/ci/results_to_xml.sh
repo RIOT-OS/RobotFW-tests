@@ -9,7 +9,6 @@ METAXML=$BASEDIR/metadata.xml
 
 # write header to xml
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > $BASEXML
-echo "<?xml-stylesheet type=\"text/xsl\" href=\"https://ci.riot-os.org/static/robot.xsl\"?>" >> $BASEXML
 echo "<result name=\"RIOT HIL\">" >> $BASEXML
 tail -n+2 $METAXML >> $BASEXML
 echo "<boards>" >> $BASEXML
