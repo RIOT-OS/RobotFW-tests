@@ -54,7 +54,15 @@ build system. For instance, it uses existing `make` targets like `flash` and
 environment variables such as `BOARD` and `PORT`. Further, new targets are
 introduced namely `robot-test` to specifically trigger RF based HIL testing
 without interfering with the existing `test` target in RIOT and `robot-clean`
-to clean the build folder and hence, enable the tests to be rerun. 
+to clean the build folder and hence, enable the tests to be rerun.
+
+Additional `robot` flags can be added with `ROBOT_EXTRA_ARGS`.
+This can be useful for fine-tuning robot performance while taking advantage of
+the build system.
+For example, selecting a single test suite for a test binary:
+```
+ROBOT_EXTRA_ARGS="-s mytestsuitename" make robot-test
+```
 
 [draft]: https://github.com/RIOT-OS/RIOT/pull/10624
 [RobotFramework]: https://robotframework.org

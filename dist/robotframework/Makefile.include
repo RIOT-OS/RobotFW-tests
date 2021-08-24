@@ -3,19 +3,23 @@ RFBASE    ?= $(TESTBASE)/dist/robotframework
 RFPYPATH  ?= $(APPDIR)/tests:$(RFBASE)/lib:$(RFBASE)/res
 RFOUTPATH ?= $(BUILD_DIR)/robot/$(BOARD)/$(APPLICATION)
 ROBOT_TESTDIR ?= tests/
+ROBOT_EXTRA_ARGS ?=
+ROBOT_ARGS ?= \
+--name "$(APPLICATION)" \
+--settag "APP_$(APPLICATION)" \
+--settag "BOARD_$(BOARD)" \
+--metadata RIOT-Version:$(RIOT_VERSION) \
+--metadata RIOT-Board:$(BOARD) \
+--metadata RIOT-Application:$(APPLICATION) \
+-P "$(RFPYPATH)" \
+-l NONE \
+-o $@ \
+-r NONE \
+$(ROBOT_EXTRA_ARGS)
 
 $(RFOUTPATH)/output.xml: $(ROBOT_TESTDIR)
 	-python3 -m robot.run \
-				--name "$(APPLICATION)" \
-				--settag "APP_$(APPLICATION)" \
-				--settag "BOARD_$(BOARD)" \
-				--metadata RIOT-Version:$(RIOT_VERSION) \
-				--metadata RIOT-Board:$(BOARD) \
-				--metadata RIOT-Application:$(APPLICATION) \
-				-P "$(RFPYPATH)" \
-				-l NONE \
-				-o $@ \
-				-r NONE \
+				$(ROBOT_ARGS) \
 				$^
 	python3 $(TESTBASE)/dist/tools/output_to_xunit/output_to_xunit.py \
 				--output $(RFOUTPATH)/xunit.xml \
