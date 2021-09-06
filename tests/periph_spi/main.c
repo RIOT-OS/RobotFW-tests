@@ -182,10 +182,7 @@ int cmd_spi_acquire(int argc, char **argv)
             "spi_acquire(bus=%i, port=%"PRIi32", pin=%"PRIi32", mode=%i, clk=%s)",
             dev, port, pin, mode, argv[3]);
     print_cmd(PARSER_DEV_NUM, printbuf);
-    CHECK_ASSERT(spi_acquire(spiconf.dev,
-                             spiconf.cs,
-                             spiconf.mode,
-                             spiconf.clk) == SPI_OK, "ERROR initializing SPI");
+    spi_acquire(spiconf.dev, spiconf.cs, spiconf.mode, spiconf.clk);
     print_result(PARSER_DEV_NUM, TEST_RESULT_SUCCESS);
     return 0;
 }
