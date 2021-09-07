@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+import sys
 import argparse
 import xml.etree.ElementTree as ET
 from datetime import datetime as DT
@@ -118,3 +119,6 @@ for tc in testsuite["testcases"]:
 
 newtree = ET.ElementTree(newroot)
 newtree.write(args.output, encoding="UTF-8", xml_declaration=True)
+
+# To catch failures in make we add failures to the exit code
+sys.exit(int(total_all.get("fail")))
