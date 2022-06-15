@@ -25,25 +25,27 @@ SPI Clock Speed Check Setup
     [Documentation]     Main routine to verify the clock speed
     [Arguments]         ${clk_speed_string}  ${clk_speed_value}  ${size}
     Set Test Variable                   ${size}
-    PHiLIP.write and execute            spi.mode.if_type    3
+    PHiLIP.write and execute            spi.mode.if_type    4
     SPI Acquire Should Succeed          0                   ${clk_speed_string}
     SPI Transfer Bytes Should Succeed   cont=0              in_len=${size}
     API Call Should Succeed             PHiLIP.Read Reg     sys.sys_clk
     Set Test Variable                   ${sys_clk}          ${RESULT['data']}
-    API Call Should Succeed             PHiLIP.Read Reg     spi.byte_ticks
-    Set Test Variable                   ${byte_ticks}       ${RESULT['data']}
-    IF  ${byte_ticks} == 0
-        Fail  Error with the measurement. byte_ticks == 0.
+    ${frame_stats}=                     PHiLIP.Get Spi Clk Frame Stats
+    IF  ${frame_stats} == 0
+        Fail  Measurement error. No measurement data.
     END
 
     Set Test Variable                   ${comparison}
-    ...                                     ${spi_speed_comparison(${clk_speed_value}, ${byte_ticks}, ${sys_clk})}
-
+    ...                                     ${spi_speed_comparison(${clk_speed_value}, ${frame_stats}, ${sys_clk}, ${size})}
 
     Record Property     expected_freq   ${clk_speed_value}
     Record Property     measured_freq   ${comparison['measured_freq']}
     Record Property     diff_pct        ${comparison['difference_percentage']}
     Record Property     byte_count      ${size}
+
+    IF  ${comparison['byte_error']}
+        Fail  Measurement error. Expected byte count is ${size}. Actual byte count is ${comparison['byte_count']}
+    END
 
     IF   not ${comparison['pass']}
         Run Keyword
