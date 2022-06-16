@@ -31,9 +31,6 @@ SPI Clock Speed Check Setup
     API Call Should Succeed             PHiLIP.Read Reg     sys.sys_clk
     Set Test Variable                   ${sys_clk}          ${RESULT['data']}
     ${frame_stats}=                     PHiLIP.Get Spi Clk Frame Stats
-    IF  ${frame_stats} == 0
-        Fail  Measurement error. No measurement data.
-    END
 
     Set Test Variable                   ${comparison}
     ...                                     ${spi_speed_comparison(${clk_speed_value}, ${frame_stats}, ${sys_clk}, ${size})}
@@ -42,10 +39,6 @@ SPI Clock Speed Check Setup
     Record Property     measured_freq   ${comparison['measured_freq']}
     Record Property     diff_pct        ${comparison['difference_percentage']}
     Record Property     byte_count      ${size}
-
-    IF  ${comparison['byte_error']}
-        Fail  Measurement error. Expected byte count is ${size}. Actual byte count is ${comparison['byte_count']}
-    END
 
     IF   not ${comparison['pass']}
         Run Keyword
@@ -65,42 +58,50 @@ Fail Test
 
 
 *** Test Cases ***
+Clock Speed 100k Should Succeed 1 Byte
+    [Documentation]  Checks the clock speed for 100kHz with 1 bytes
+    SPI Clock Speed Check Setup    100k     100000    1
+
 Clock Speed 100k Should Succeed 2 Byte
     [Documentation]  Checks the clock speed for 100kHz with 2 bytes
     SPI Clock Speed Check Setup    100k     100000    2
 
-Clock Speed 100k Should Succeed 3 Byte
-    [Documentation]  Checks the clock speed for 100kHz with 3 bytes
-    SPI Clock Speed Check Setup    100k     100000    3
+Clock Speed 100k Should Succeed 8 Byte
+    [Documentation]  Checks the clock speed for 100kHz with 8 bytes
+    SPI Clock Speed Check Setup    100k     100000    8
+
+Clock Speed 400k Should Succeed 1 Byte
+    [Documentation]  Checks the clock speed for 400kHz with 1 bytes
+    SPI Clock Speed Check Setup    400k     400000    1
 
 Clock Speed 400k Should Succeed 2 Byte
     [Documentation]  Checks the clock speed for 400kHz with 2 bytes
     SPI Clock Speed Check Setup    400k     400000    2
 
-Clock Speed 400k Should Succeed 3 Byte
-    [Documentation]  Checks the clock speed for 400kHz with 3 bytes
-    SPI Clock Speed Check Setup    400k     400000    3
+Clock Speed 400k Should Succeed 8 Byte
+    [Documentation]  Checks the clock speed for 400kHz with 8 bytes
+    SPI Clock Speed Check Setup    400k     400000    8
+
+Clock Speed 1M Should Succeed 1 Byte
+    [Documentation]  Checks the clock speed for 1MHz with 1 bytes
+    SPI Clock Speed Check Setup      1M    1000000    1
 
 Clock Speed 1M Should Succeed 2 Byte
     [Documentation]  Checks the clock speed for 1MHz with 2 bytes
     SPI Clock Speed Check Setup      1M    1000000    2
 
-Clock Speed 1M Should Succeed 3 Byte
-    [Documentation]  Checks the clock speed for 1MHz with 3 bytes
-    SPI Clock Speed Check Setup      1M    1000000    3
+Clock Speed 1M Should Succeed 8 Byte
+    [Documentation]  Checks the clock speed for 1MHz with 8 bytes
+    SPI Clock Speed Check Setup      1M    1000000    8
+
+Clock Speed 5M Should Succeed 1 Byte
+    [Documentation]  Checks the clock speed for 5MHz with 1 bytes
+    SPI Clock Speed Check Setup      5M    5000000    1
 
 Clock Speed 5M Should Succeed 2 Byte
     [Documentation]  Checks the clock speed for 5MHz with 2 bytes
     SPI Clock Speed Check Setup      5M    5000000    2
 
-Clock Speed 5M Should Succeed 3 Byte
-    [Documentation]  Checks the clock speed for 5MHz with 3 bytes
-    SPI Clock Speed Check Setup      5M    5000000    3
-
-Clock Speed 10M Should Succeed 2 Byte
-    [Documentation]  Checks the clock speed for 10MHz with 2 bytes
-    SPI Clock Speed Check Setup     10M   10000000    2
-
-Clock Speed 10M Should Succeed 3 Byte
-    [Documentation]  Checks the clock speed for 10MHz with 3 bytes
-    SPI Clock Speed Check Setup     10M   10000000    3
+Clock Speed 5M Should Succeed 8 Byte
+    [Documentation]  Checks the clock speed for 5MHz with 8 bytes
+    SPI Clock Speed Check Setup      5M    5000000    8
