@@ -19,28 +19,26 @@ LIST__VAL_9 = [254, 7, 8, 9, 10]
 LIST__VAL_10 = [254, 11, 2, 14, 5]
 
 
-WARN_TOLERANCE = 0.2 #in percentage
+WARN_TOLERANCE = 0.1 #in percentage
 FAIL_TOLERANCE = 0.5 #in percentage
 SEC_TO_USEC = 1000000
 BITS_PER_BYTE = 8
-DEADTIME_TOLERANCE_PER_BIT = 2 / BITS_PER_BYTE #in us, due to possible DUT preparation between bytes
 
-def spi_speed_comparison(expected_freq, measured_ticks, sys_clock_speed):
+def spi_speed_comparison(expected_freq, frame_stats, sys_clock_speed, size):
     expected_freq = int(expected_freq)
-    measured_ticks = int(measured_ticks)
     sys_clock_speed = int(sys_clock_speed)
+    size = int(size)
 
-    if measured_ticks == 0:
-       raise ValueError("measured ticks cannot be 0")
-
-    measured_time = ticks_to_us(measured_ticks, sys_clock_speed)
-    measured_freq = int(SEC_TO_USEC / (measured_time / (BITS_PER_BYTE)))
+    measured_freq = frame_stats['mean']
+    measured_byte_count =  len(frame_stats['values'])
+    assert measured_byte_count == size, 'Expected byte count does not match measured byte count'
 
     result = {}
     result['pass'] = False
     result['warn'] = False
     result['measured_freq'] = measured_freq
     result['difference_percentage'] = 0
+    result['byte_count'] = measured_byte_count
 
     warn_limits = calculate_limits(expected_freq, WARN_TOLERANCE)
     fail_limits = calculate_limits(expected_freq, FAIL_TOLERANCE)
@@ -54,13 +52,11 @@ def spi_speed_comparison(expected_freq, measured_ticks, sys_clock_speed):
 
     return result
 
-
 def calculate_limits(expected_freq, tolerance):
     result = {}
-    result['lower_limit'] = int(SEC_TO_USEC / (1 / (expected_freq * (1 - tolerance)) * SEC_TO_USEC + DEADTIME_TOLERANCE_PER_BIT))
+    result['lower_limit'] = int(SEC_TO_USEC / (1 / (expected_freq * (1 - tolerance)) * SEC_TO_USEC))
     result['upper_limit'] = int(expected_freq * (1 + tolerance))
     return result
-
 
 def ticks_to_us(ticks, sys_clock_speed):
     sToUs = 1000000
