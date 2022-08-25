@@ -270,6 +270,49 @@ int cmd_i2c_read_bytes(int argc, char **argv)
     return _print_i2c_error(res);
 }
 
+int cmd_i2c_read_bytes_loop(int argc, char **argv)
+{
+    int res = sc_args_check(argc, argv, 5, 5, "DEV ADDR LENGTH FLAG LOOPS");
+    if (res != ARGS_OK) {
+        return 1;
+    }
+
+    int dev = sc_arg2dev(argv[1], I2C_NUMOF);
+    if (dev < 0) {
+        return -ENODEV;
+    }
+
+    uint16_t addr = 0;
+    int len = 0;
+    uint8_t flags = 0;
+    int loops = 0;
+
+    if (sc_arg2u16(argv[2], &addr) != ARGS_OK
+        || sc_arg2int(argv[3], &len) != ARGS_OK
+        || sc_arg2u8(argv[4], &flags) != ARGS_OK
+        || sc_arg2int(argv[5], &loops) != ARGS_OK) {
+        return 1;
+    }
+
+    if (len < 1 || len > (int)BUFSIZE) {
+        puts("Error: invalid LENGTH parameter given");
+        return 1;
+    }
+    else {
+        printf("Command: i2c_read_bytes(%i, 0x%02x, %i, 0x%02x)\n", dev,
+         addr, len, flags);
+        for (int i = 0; i < loops; i++) {
+            res = i2c_read_bytes(dev, addr, i2c_buf, len, flags);
+        }
+    }
+
+    if (res == I2C_ACK) {
+        _print_i2c_read(dev, NULL, i2c_buf, len);
+        return 0;
+    }
+    return _print_i2c_error(res);
+}
+
 int cmd_i2c_write_byte(int argc, char **argv)
 {
     int res = sc_args_check(argc, argv, 4, 4, "DEV ADDR BYTE FLAG");
@@ -458,6 +501,7 @@ static const shell_command_t shell_commands[] = {
     { "i2c_read_regs", "Read bytes from registers", cmd_i2c_read_regs },
     { "i2c_read_byte", "Read byte from the I2C device", cmd_i2c_read_byte },
     { "i2c_read_bytes", "Read bytes from the I2C device", cmd_i2c_read_bytes },
+    { "i2c_read_bytes_loop", "Read bytes several times", cmd_i2c_read_bytes_loop },
     { "i2c_write_byte", "Write byte to the I2C device", cmd_i2c_write_byte },
     { "i2c_write_bytes", "Write bytes to the I2C device", cmd_i2c_write_bytes },
     { "i2c_write_reg", "Write byte to register", cmd_i2c_write_reg },

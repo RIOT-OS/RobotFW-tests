@@ -10,6 +10,7 @@ Test Setup          Run Keywords    PHILIP Reset
 
 Resource            periph_i2c.keywords.txt
 Resource            api_shell.keywords.txt
+Variables           test_vars.py
 
 Force Tags          periph  i2c
 
@@ -24,6 +25,18 @@ Acquire after Release Should Succeed
     API Call Should Succeed     I2C Acquire
     API Call Should Succeed     I2C Release
     API Call Should Succeed     I2C Acquire
+
+CUSTOM TEST
+    [Documentation]             Verify acquiring an I2C bus after release.
+    API Call Should Succeed     I2C Acquire
+    API Call Should Succeed     I2C Read Bytes Loop  leng=100
+    Record Property             "Test"    ${RESULT}
+    API Call Should Succeed     I2C Read Bytes Loop  leng=100  loop=10
+    Record Property             "Test"    ${RESULT}
+    Should Be Equal             ${RESULT['data']}  ${LIST__VAL_100}
+    API Call Should Succeed     I2C Read Bytes Loop  leng=10  loop=100
+    Record Property             "Test"    ${RESULT}
+    API Call Should Succeed     I2C Release
 
 Double Acquire Should Timeout
     [Documentation]             Verify that acquiring a locked I2C bus blocks.
