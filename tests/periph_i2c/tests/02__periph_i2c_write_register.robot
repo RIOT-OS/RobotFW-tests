@@ -20,5 +20,6 @@ Force Tags          periph  i2c
 One Byte Should Succeed     ${I2C_UREG}     ${VAL_1}    1
 Two Bytes Should Succeed    ${I2C_UREG}     ${VAL_2}    2
 Ten Bytes Should Succeed    ${I2C_UREG}     ${VAL_10}   10
+100 Bytes Should Succeed    ${I2C_UREG}     ${VAL_50}   50
 100 Bytes Should Succeed    ${I2C_UREG}     ${VAL_100}  100
 200 Bytes Should Succeed    ${I2C_UREG}     ${VAL_200}  200
