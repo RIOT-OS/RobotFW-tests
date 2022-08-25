@@ -56,7 +56,7 @@ class PeriphI2cIf(DutShell):
                        flag=0, loop=10):
         """Read bytes from the I2C device."""
         return self.send_cmd('i2c_read_bytes_loop'
-                             ' {} {} {} {}'.format(dev, addr, leng, flag, loop))
+                             ' {} {} {} {} {}'.format(dev, addr, leng, flag, loop))
 
     def i2c_write_reg(self, dev=DEFAULT_DEV, addr=DEFAULT_ADDR, reg=DEFAULT_REG,
                       data=DEFAULT_DATA, flag=0):
