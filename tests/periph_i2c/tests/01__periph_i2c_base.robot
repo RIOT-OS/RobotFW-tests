@@ -25,6 +25,13 @@ Acquire after Release Should Succeed
     API Call Should Succeed     I2C Release
     API Call Should Succeed     I2C Acquire
 
+CUSTOM TEST
+    [Documentation]             Verify acquiring an I2C bus after release.
+    API Call Should Succeed     I2C Acquire
+    API Call Should Succeed     I2C Read Bytes  leng=100
+    Record Property             "Test"    ${RESULT}
+    API Call Should Succeed     I2C Release
+
 Double Acquire Should Timeout
     [Documentation]             Verify that acquiring a locked I2C bus blocks.
     API Call Should Succeed     I2C Acquire
