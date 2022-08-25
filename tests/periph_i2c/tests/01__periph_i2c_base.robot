@@ -28,7 +28,11 @@ Acquire after Release Should Succeed
 CUSTOM TEST
     [Documentation]             Verify acquiring an I2C bus after release.
     API Call Should Succeed     I2C Acquire
-    API Call Should Succeed     I2C Read Bytes  leng=100
+    API Call Should Succeed     I2C Read Bytes Loop  leng=100
+    Record Property             "Test"    ${RESULT}
+    API Call Should Succeed     I2C Read Bytes Loop  leng=100  loop=10
+    Record Property             "Test"    ${RESULT}
+    API Call Should Succeed     I2C Read Bytes Loop  leng=10  loop=100
     Record Property             "Test"    ${RESULT}
     API Call Should Succeed     I2C Release
 
