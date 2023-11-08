@@ -21,5 +21,4 @@ Verify Reset Pin Is Connected
     API Call Should Timeout     lock
     API Call Should Timeout     get_metadata
     Run Keyword                 RIOT Reset
-    Sleep                       1
-    API Call Should Succeed     get_metadata
+    API Sync Shell
